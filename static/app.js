@@ -215,14 +215,13 @@ function showToast(message, type = "success") {
   const toast = document.createElement("div");
   toast.className = `toast toast-${type}`;
   toast.innerHTML = `
-    <i data-lucide="${type === "success" ? "check" : "alert-circle"}" class="h-5 w-5"></i>
+    <i data-lucide="${type === "success" ? "check" : "alert-circle"}" class="icon-md"></i>
     <span class="font-medium">${message}</span>
-    <button class="ml-2 hover:opacity-70" onclick="this.parentElement.remove()">
-      <i data-lucide="x" class="h-4 w-4"></i>
+    <button onclick="this.parentElement.remove()">
+      <i data-lucide="x" class="icon-sm"></i>
     </button>
   `;
   container.appendChild(toast);
-  lucide.createIcons({ icons: { check: lucide.icons.check, 'alert-circle': lucide.icons['alert-circle'], x: lucide.icons.x }, attrs: { class: '' } });
   
   // Re-create icons in toast
   toast.querySelectorAll('[data-lucide]').forEach(el => {
@@ -252,28 +251,28 @@ function createEventCard(event) {
     <div class="status-bar ${event.status}"></div>
     <div class="hover-overlay"></div>
     
-    <div class="mb-4 pt-2">
-      <h3 class="card-title text-lg font-semibold text-card-foreground transition-colors">${event.name}</h3>
-      <span class="badge ${event.status === "open" ? "badge-success" : "badge-secondary"} mt-2">
+    <div class="card-header">
+      <h3 class="card-title">${event.name}</h3>
+      <span class="badge ${event.status === "open" ? "badge-success" : "badge-secondary"}" style="margin-top: 8px; display: inline-block;">
         ${event.status === "open" ? "Abierto" : "Cerrado"}
       </span>
     </div>
 
-    <div class="space-y-3 text-sm">
-      <div class="flex items-center gap-2 text-muted-foreground">
-        <i data-lucide="calendar" class="h-4 w-4 text-primary"></i>
+    <div class="card-content">
+      <div class="card-info-row">
+        <i data-lucide="calendar" class="icon-sm" style="color: var(--primary);"></i>
         <span>${event.startDate} - ${event.endDate}</span>
       </div>
 
-      <div class="flex items-center gap-2 text-muted-foreground">
-        <i data-lucide="gift" class="h-4 w-4 text-accent"></i>
+      <div class="card-info-row">
+        <i data-lucide="gift" class="icon-sm" style="color: var(--accent);"></i>
         <span>${event.totalGifts} regalos asignados</span>
       </div>
 
-      <div class="pt-2 border-t border-border">
-        <div class="flex items-center gap-2 mb-2">
-          <i data-lucide="ticket" class="h-4 w-4 text-primary"></i>
-          <span class="text-xs font-medium text-muted-foreground">Rifas asignadas (${event.raffles.length})</span>
+      <div class="card-divider">
+        <div class="raffles-header">
+          <i data-lucide="ticket" class="icon-sm" style="color: var(--primary);"></i>
+          <span class="text-xs font-medium text-muted">Rifas asignadas (${event.raffles.length})</span>
         </div>
         <div class="raffles-scroll">
           ${
@@ -281,10 +280,10 @@ function createEventCard(event) {
               ? event.raffles
                   .map(
                     (raffle) =>
-                      `<span class="badge badge-outline shrink-0">${raffle}</span>`
+                      `<span class="badge badge-outline">${raffle}</span>`
                   )
                   .join("")
-              : '<span class="text-xs text-muted-foreground italic">Sin rifas asignadas</span>'
+              : '<span class="text-xs text-muted" style="font-style: italic;">Sin rifas asignadas</span>'
           }
         </div>
       </div>
@@ -379,7 +378,6 @@ function updateFiltersDisplay() {
 
   if (hasFilters) {
     activeFilters.classList.remove("hidden");
-    activeFilters.classList.add("flex");
     clearBtn.classList.remove("hidden");
 
     if (state.searchQuery) {
@@ -397,7 +395,6 @@ function updateFiltersDisplay() {
     }
   } else {
     activeFilters.classList.add("hidden");
-    activeFilters.classList.remove("flex");
     clearBtn.classList.add("hidden");
   }
 }
@@ -477,7 +474,6 @@ function updateAddModeUI() {
 
   if (state.addMode === null) {
     addButtons.classList.remove("hidden");
-    addButtons.classList.add("flex");
     tableModeButtons.classList.add("hidden");
     wizardForm.classList.add("hidden");
   } else if (state.addMode === "form") {
@@ -488,7 +484,6 @@ function updateAddModeUI() {
   } else if (state.addMode === "table") {
     addButtons.classList.add("hidden");
     tableModeButtons.classList.remove("hidden");
-    tableModeButtons.classList.add("flex");
     wizardForm.classList.add("hidden");
   }
 
@@ -509,7 +504,7 @@ function renderRafflesTable() {
 
   state.raffles.forEach((raffle) => {
     const row = document.createElement("tr");
-    row.className = `hover:bg-muted/30 transition-colors ${raffle.isNew ? "table-row-new" : ""} ${raffle.isEditing ? "table-row-editing" : ""}`;
+    row.className = `${raffle.isNew ? "table-row-new" : ""} ${raffle.isEditing ? "table-row-editing" : ""}`;
 
     if (raffle.isEditing) {
       row.innerHTML = createEditableRow(raffle);
@@ -525,71 +520,71 @@ function renderRafflesTable() {
 
 function createEditableRow(raffle) {
   return `
-    <td class="px-3 py-3">
-      <input type="text" class="form-input h-9 text-sm min-w-[120px]" value="${raffle.name}" 
+    <td>
+      <input type="text" class="form-input table-input table-input-md" value="${raffle.name}" 
         onchange="updateRaffle(${raffle.id}, 'name', this.value)" placeholder="Nombre">
     </td>
-    <td class="px-3 py-3">
-      <select class="form-input form-select h-9 text-sm min-w-[100px]" onchange="updateRaffle(${raffle.id}, 'type', this.value)">
+    <td>
+      <select class="form-input form-select table-input" style="min-width: 100px;" onchange="updateRaffle(${raffle.id}, 'type', this.value)">
         <option value="area" ${raffle.type === "area" ? "selected" : ""}>area</option>
         <option value="general" ${raffle.type === "general" ? "selected" : ""}>general</option>
       </select>
     </td>
-    <td class="px-3 py-3">
-      <select class="form-input form-select h-9 text-sm min-w-[180px]" onchange="updateRaffle(${raffle.id}, 'manager', this.value)">
+    <td>
+      <select class="form-input form-select table-input table-input-lg" onchange="updateRaffle(${raffle.id}, 'manager', this.value)">
         <option value="">Manager</option>
         ${MANAGERS.map((m) => `<option value="${m.name}" ${raffle.manager === m.name ? "selected" : ""}>${m.name}</option>`).join("")}
       </select>
     </td>
-    <td class="px-3 py-3">
-      <select class="form-input form-select h-9 text-sm min-w-[120px]" onchange="updateRaffle(${raffle.id}, 'area', this.value)">
+    <td>
+      <select class="form-input form-select table-input table-input-md" onchange="updateRaffle(${raffle.id}, 'area', this.value)">
         <option value="">Area</option>
         ${AREAS.map((a) => `<option value="${a}" ${raffle.area === a ? "selected" : ""}>${a}</option>`).join("")}
       </select>
     </td>
-    <td class="px-3 py-3">
-      <select class="form-input form-select h-9 text-sm min-w-[120px]" onchange="updateRaffle(${raffle.id}, 'department', this.value)">
+    <td>
+      <select class="form-input form-select table-input table-input-md" onchange="updateRaffle(${raffle.id}, 'department', this.value)">
         <option value="">Depto</option>
         ${DEPARTMENTS.map((d) => `<option value="${d}" ${raffle.department === d ? "selected" : ""}>${d}</option>`).join("")}
       </select>
     </td>
-    <td class="px-3 py-3">
-      <select class="form-input form-select h-9 text-sm min-w-[100px]" onchange="updateRaffle(${raffle.id}, 'level', this.value)">
+    <td>
+      <select class="form-input form-select table-input" style="min-width: 100px;" onchange="updateRaffle(${raffle.id}, 'level', this.value)">
         <option value="">Nivel</option>
         ${LEVELS.map((l) => `<option value="${l}" ${raffle.level === l ? "selected" : ""}>${l}</option>`).join("")}
       </select>
     </td>
-    <td class="px-3 py-3">
-      <select class="form-input form-select h-9 text-sm min-w-[110px]" onchange="updateRaffle(${raffle.id}, 'seniority', this.value)">
+    <td>
+      <select class="form-input form-select table-input" style="min-width: 110px;" onchange="updateRaffle(${raffle.id}, 'seniority', this.value)">
         <option value="">Antiguedad</option>
         ${SENIORITY_OPTIONS.map((s) => `<option value="${s}" ${raffle.seniority === s ? "selected" : ""}>${s}</option>`).join("")}
       </select>
     </td>
-    <td class="px-3 py-3">
-      <select class="form-input form-select h-9 text-sm min-w-[110px]" onchange="updateRaffle(${raffle.id}, 'contractType', this.value)">
+    <td>
+      <select class="form-input form-select table-input" style="min-width: 110px;" onchange="updateRaffle(${raffle.id}, 'contractType', this.value)">
         <option value="">Contrato</option>
         ${CONTRACT_TYPES.map((c) => `<option value="${c}" ${raffle.contractType === c ? "selected" : ""}>${c}</option>`).join("")}
       </select>
     </td>
-    <td class="px-3 py-3">
-      <input type="number" class="form-input h-9 text-sm text-center w-20" value="${raffle.employees}" 
+    <td>
+      <input type="number" class="form-input table-input table-input-sm" value="${raffle.employees}" 
         onchange="updateRaffle(${raffle.id}, 'employees', parseInt(this.value) || 0)">
     </td>
-    <td class="px-3 py-3">
-      <input type="number" class="form-input h-9 text-sm text-center w-20" value="${raffle.gifts}" 
+    <td>
+      <input type="number" class="form-input table-input table-input-sm" value="${raffle.gifts}" 
         onchange="updateRaffle(${raffle.id}, 'gifts', parseInt(this.value) || 0)">
     </td>
-    <td class="px-3 py-3">
-      <input type="number" class="form-input h-9 text-sm text-center w-16" value="${raffle.percentage}" 
+    <td>
+      <input type="number" class="form-input table-input table-input-sm" style="width: 64px;" value="${raffle.percentage}" 
         onchange="updateRaffle(${raffle.id}, 'percentage', parseInt(this.value) || 0)">
     </td>
-    <td class="px-3 py-3">
-      <div class="flex items-center justify-center gap-1">
-        <button class="btn btn-ghost btn-icon text-success hover:bg-success/10" onclick="saveRow(${raffle.id})">
-          <i data-lucide="check" class="h-4 w-4"></i>
+    <td>
+      <div class="table-actions">
+        <button class="btn btn-ghost btn-icon" style="color: var(--success);" onclick="saveRow(${raffle.id})">
+          <i data-lucide="check" class="icon-sm"></i>
         </button>
-        <button class="btn btn-ghost btn-icon text-destructive hover:bg-destructive/10" onclick="cancelEditing(${raffle.id})">
-          <i data-lucide="x" class="h-4 w-4"></i>
+        <button class="btn btn-ghost btn-icon" style="color: var(--destructive);" onclick="cancelEditing(${raffle.id})">
+          <i data-lucide="x" class="icon-sm"></i>
         </button>
       </div>
     </td>
@@ -598,33 +593,33 @@ function createEditableRow(raffle) {
 
 function createReadOnlyRow(raffle) {
   return `
-    <td class="px-4 py-4 text-sm font-medium whitespace-nowrap">${raffle.name}</td>
-    <td class="px-4 py-4">
-      <span class="badge badge-secondary text-xs">${raffle.type}</span>
+    <td class="font-medium">${raffle.name}</td>
+    <td>
+      <span class="badge badge-secondary">${raffle.type}</span>
     </td>
-    <td class="px-4 py-4 text-sm text-muted-foreground max-w-[200px] truncate">${raffle.manager}</td>
-    <td class="px-4 py-4 text-sm whitespace-nowrap">${raffle.area}</td>
-    <td class="px-4 py-4 text-sm whitespace-nowrap">${raffle.department}</td>
-    <td class="px-4 py-4 text-sm whitespace-nowrap">${raffle.level}</td>
-    <td class="px-4 py-4 text-sm whitespace-nowrap">${raffle.seniority}</td>
-    <td class="px-4 py-4 text-sm whitespace-nowrap">${raffle.contractType}</td>
-    <td class="px-4 py-4 text-center">
-      <span class="badge ${raffle.employees > 0 ? "badge-default" : "badge-secondary"} min-w-[40px]">
+    <td class="text-muted" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${raffle.manager}</td>
+    <td>${raffle.area}</td>
+    <td>${raffle.department}</td>
+    <td>${raffle.level}</td>
+    <td>${raffle.seniority}</td>
+    <td>${raffle.contractType}</td>
+    <td class="text-center">
+      <span class="badge ${raffle.employees > 0 ? "badge-default" : "badge-secondary"}" style="min-width: 40px;">
         ${raffle.employees}
       </span>
     </td>
-    <td class="px-4 py-4 text-center font-semibold">${raffle.gifts}</td>
-    <td class="px-4 py-4 text-center text-muted-foreground">${raffle.percentage}%</td>
-    <td class="px-4 py-4">
-      <div class="flex items-center justify-center gap-1">
-        <button class="btn btn-ghost btn-icon text-primary hover:bg-primary/10" onclick="startEditing(${raffle.id})">
-          <i data-lucide="pencil" class="h-4 w-4"></i>
+    <td class="text-center font-semibold">${raffle.gifts}</td>
+    <td class="text-center text-muted">${raffle.percentage}%</td>
+    <td>
+      <div class="table-actions">
+        <button class="btn btn-ghost btn-icon" style="color: var(--primary);" onclick="startEditing(${raffle.id})">
+          <i data-lucide="pencil" class="icon-sm"></i>
         </button>
-        <button class="btn btn-ghost btn-icon text-muted-foreground hover:text-foreground" onclick="copyRow(${raffle.id})">
-          <i data-lucide="copy" class="h-4 w-4"></i>
+        <button class="btn btn-ghost btn-icon text-muted" onclick="copyRow(${raffle.id})">
+          <i data-lucide="copy" class="icon-sm"></i>
         </button>
-        <button class="btn btn-ghost btn-icon text-destructive hover:bg-destructive/10" onclick="deleteRow(${raffle.id})">
-          <i data-lucide="trash-2" class="h-4 w-4"></i>
+        <button class="btn btn-ghost btn-icon" style="color: var(--destructive);" onclick="deleteRow(${raffle.id})">
+          <i data-lucide="trash-2" class="icon-sm"></i>
         </button>
       </div>
     </td>
@@ -774,134 +769,135 @@ function renderWizardStep() {
   switch (state.currentStep) {
     case 1:
       content = `
-        <div class="space-y-4">
-          <div class="flex items-center gap-3 mb-6">
+        <div>
+          <div class="step-header">
             <div class="step-indicator">1</div>
             <div>
-              <h4 class="font-semibold text-lg">Seleccionar Evento</h4>
-              <p class="text-sm text-muted-foreground">Paso 1 de 4</p>
+              <h4 class="step-title">Seleccionar Evento</h4>
+              <p class="step-subtitle">Paso 1 de 4</p>
             </div>
           </div>
-          <div class="bg-primary/5 border border-primary/20 rounded-lg p-5">
-            <div class="flex items-center gap-3 text-primary">
-              <i data-lucide="check" class="h-6 w-6"></i>
-              <span class="font-medium text-lg">Evento seleccionado: ${state.selectedEvent?.name || ""}</span>
+          <div class="event-selected-box">
+            <div class="event-selected-content">
+              <i data-lucide="check" class="icon-lg"></i>
+              <span class="font-medium" style="font-size: var(--font-size-lg);">Evento seleccionado: ${state.selectedEvent?.name || ""}</span>
             </div>
           </div>
         </div>
       `;
       prevBtn.innerHTML = "Cancelar";
-      nextBtn.innerHTML = 'Siguiente <i data-lucide="chevron-right" class="h-4 w-4"></i>';
+      nextBtn.innerHTML = 'Siguiente <i data-lucide="chevron-right" class="icon-sm"></i>';
+      nextBtn.className = "btn btn-primary";
       break;
 
     case 2:
       content = `
-        <div class="space-y-4">
-          <div class="flex items-center gap-3 mb-6">
+        <div>
+          <div class="step-header">
             <div class="step-indicator">2</div>
             <div>
-              <h4 class="font-semibold text-lg">Informacion de la Rifa</h4>
-              <p class="text-sm text-muted-foreground">Paso 2 de 4</p>
+              <h4 class="step-title">Informacion de la Rifa</h4>
+              <p class="step-subtitle">Paso 2 de 4</p>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-5">
-            <div class="space-y-2">
-              <label class="text-sm font-medium">Nombre de la Rifa *</label>
-              <input type="text" id="form-name" class="form-input h-11 ${state.formErrors.name ? "error" : ""}" 
-                placeholder="Ej: Rifa Area RH" value="${state.formData.name}">
-              ${state.formErrors.name ? `<p class="text-xs text-destructive">${state.formErrors.name}</p>` : ""}
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Nombre de la Rifa *</label>
+              <input type="text" id="form-name" class="form-input ${state.formErrors.name ? "error" : ""}" 
+                placeholder="Ej: Rifa Area RH" value="${state.formData.name}" style="height: 44px;">
+              ${state.formErrors.name ? `<p class="form-error">${state.formErrors.name}</p>` : ""}
             </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium">Tipo de Rifa</label>
-              <select id="form-type" class="form-input form-select h-11">
+            <div class="form-group">
+              <label class="form-label">Tipo de Rifa</label>
+              <select id="form-type" class="form-input form-select" style="height: 44px;">
                 <option value="general" ${state.formData.type === "general" ? "selected" : ""}>Rifa General</option>
                 <option value="area" ${state.formData.type === "area" ? "selected" : ""}>Rifa por Area</option>
               </select>
             </div>
-            <div class="col-span-2 space-y-2">
-              <label class="text-sm font-medium">Manager Responsable *</label>
-              <select id="form-manager" class="form-input form-select h-11 ${state.formErrors.manager ? "error" : ""}">
+            <div class="form-group form-grid-full">
+              <label class="form-label">Manager Responsable *</label>
+              <select id="form-manager" class="form-input form-select ${state.formErrors.manager ? "error" : ""}" style="height: 44px;">
                 <option value="">Selecciona un manager</option>
                 ${MANAGERS.map((m) => `<option value="${m.id}" ${state.formData.manager === m.id.toString() ? "selected" : ""}>${m.name}</option>`).join("")}
               </select>
-              ${state.formErrors.manager ? `<p class="text-xs text-destructive">${state.formErrors.manager}</p>` : ""}
+              ${state.formErrors.manager ? `<p class="form-error">${state.formErrors.manager}</p>` : ""}
             </div>
           </div>
         </div>
       `;
-      prevBtn.innerHTML = '<i data-lucide="chevron-left" class="h-4 w-4"></i> Anterior';
-      nextBtn.innerHTML = 'Siguiente <i data-lucide="chevron-right" class="h-4 w-4"></i>';
+      prevBtn.innerHTML = '<i data-lucide="chevron-left" class="icon-sm"></i> Anterior';
+      nextBtn.innerHTML = 'Siguiente <i data-lucide="chevron-right" class="icon-sm"></i>';
+      nextBtn.className = "btn btn-primary";
       break;
 
     case 3:
       content = `
-        <div class="space-y-4">
-          <div class="flex items-center gap-3 mb-6">
+        <div>
+          <div class="step-header">
             <div class="step-indicator">3</div>
             <div>
-              <h4 class="font-semibold text-lg">Areas, Departamentos y Filtros</h4>
-              <p class="text-sm text-muted-foreground">Paso 3 de 4</p>
+              <h4 class="step-title">Areas, Departamentos y Filtros</h4>
+              <p class="step-subtitle">Paso 3 de 4</p>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-6">
-            <div class="space-y-3">
-              <div class="flex items-center gap-2">
-                <i data-lucide="building-2" class="h-5 w-5 text-primary"></i>
-                <label class="text-base font-medium">Areas *</label>
+          <div class="form-grid">
+            <div class="form-group">
+              <div class="filter-header">
+                <i data-lucide="building-2" class="icon-md" style="color: var(--primary);"></i>
+                <label class="form-label" style="font-size: var(--font-size-base);">Areas *</label>
               </div>
-              ${state.formErrors.areas ? `<p class="text-xs text-destructive">${state.formErrors.areas}</p>` : ""}
-              <div class="border ${state.formErrors.areas ? "border-destructive" : "border-border"} rounded-lg p-4 max-h-48 overflow-y-auto space-y-3">
+              ${state.formErrors.areas ? `<p class="form-error">${state.formErrors.areas}</p>` : ""}
+              <div class="checkbox-list ${state.formErrors.areas ? "error" : ""}">
                 ${AREAS.map(
                   (area) => `
-                  <div class="flex items-center gap-3">
+                  <div class="checkbox-item">
                     <input type="checkbox" id="area-${area}" class="form-checkbox area-checkbox" 
                       ${state.formData.selectedAreas.includes(area) ? "checked" : ""} data-area="${area}">
-                    <label for="area-${area}" class="text-sm cursor-pointer">${area}</label>
+                    <label for="area-${area}">${area}</label>
                   </div>
                 `
                 ).join("")}
               </div>
             </div>
-            <div class="space-y-4">
-              <div class="flex items-center gap-2">
-                <i data-lucide="filter" class="h-5 w-5 text-primary"></i>
-                <label class="text-base font-medium">Filtros de Empleados</label>
+            <div class="filters-panel">
+              <div class="filter-header">
+                <i data-lucide="filter" class="icon-md" style="color: var(--primary);"></i>
+                <label class="form-label" style="font-size: var(--font-size-base);">Filtros de Empleados</label>
               </div>
-              <div class="space-y-4">
-                <div class="space-y-2">
-                  <label class="text-sm">Tipo de Contrato</label>
-                  <select id="form-contract" class="form-input form-select h-10">
-                    <option value="ALL" ${state.formData.contractType === "ALL" ? "selected" : ""}>Todos</option>
-                    <option value="TEMPORAL" ${state.formData.contractType === "TEMPORAL" ? "selected" : ""}>Temporal</option>
-                    <option value="PERMANENTE" ${state.formData.contractType === "PERMANENTE" ? "selected" : ""}>Permanente</option>
+              <div class="form-group">
+                <label class="form-label">Tipo de Contrato</label>
+                <select id="form-contract" class="form-input form-select" style="height: 40px;">
+                  <option value="ALL" ${state.formData.contractType === "ALL" ? "selected" : ""}>Todos</option>
+                  <option value="TEMPORAL" ${state.formData.contractType === "TEMPORAL" ? "selected" : ""}>Temporal</option>
+                  <option value="PERMANENTE" ${state.formData.contractType === "PERMANENTE" ? "selected" : ""}>Permanente</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Antiguedad</label>
+                <div class="seniority-row">
+                  <select id="form-seniority-op" class="form-input form-select" style="height: 40px;">
+                    <option value=">=" ${state.formData.seniorityOperator === ">=" ? "selected" : ""}>Mayor o igual</option>
+                    <option value="<=" ${state.formData.seniorityOperator === "<=" ? "selected" : ""}>Menor o igual</option>
+                    <option value="=" ${state.formData.seniorityOperator === "=" ? "selected" : ""}>Igual</option>
                   </select>
+                  <input type="number" id="form-seniority-val" class="form-input" style="height: 40px;"
+                    placeholder="Anos" value="${state.formData.seniorityValue}">
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm">Antiguedad</label>
-                  <div class="flex gap-2">
-                    <select id="form-seniority-op" class="form-input form-select h-10 w-24">
-                      <option value=">=" ${state.formData.seniorityOperator === ">=" ? "selected" : ""}>Mayor o igual</option>
-                      <option value="<=" ${state.formData.seniorityOperator === "<=" ? "selected" : ""}>Menor o igual</option>
-                      <option value="=" ${state.formData.seniorityOperator === "=" ? "selected" : ""}>Igual</option>
-                    </select>
-                    <input type="number" id="form-seniority-val" class="form-input h-10 flex-1" 
-                      placeholder="Anos" value="${state.formData.seniorityValue}">
-                  </div>
-                </div>
-                <div class="space-y-2">
-                  <label class="text-sm">Niveles</label>
-                  <select id="form-levels" class="form-input form-select h-10">
-                    <option value="ALL">Todos los niveles</option>
-                    ${Array.from({ length: 18 }, (_, i) => `<option value="${i + 1}">Nivel ${i + 1}</option>`).join("")}
-                  </select>
-                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Niveles</label>
+                <select id="form-levels" class="form-input form-select" style="height: 40px;">
+                  <option value="ALL">Todos los niveles</option>
+                  ${Array.from({ length: 18 }, (_, i) => `<option value="${i + 1}">Nivel ${i + 1}</option>`).join("")}
+                </select>
               </div>
             </div>
           </div>
         </div>
       `;
-      prevBtn.innerHTML = '<i data-lucide="chevron-left" class="h-4 w-4"></i> Anterior';
-      nextBtn.innerHTML = 'Siguiente <i data-lucide="chevron-right" class="h-4 w-4"></i>';
+      prevBtn.innerHTML = '<i data-lucide="chevron-left" class="icon-sm"></i> Anterior';
+      nextBtn.innerHTML = 'Siguiente <i data-lucide="chevron-right" class="icon-sm"></i>';
+      nextBtn.className = "btn btn-primary";
       break;
 
     case 4:
@@ -909,67 +905,67 @@ function renderWizardStep() {
       const availableGifts = (state.selectedEvent?.totalGifts || 0) - assignedGifts;
 
       content = `
-        <div class="space-y-4">
-          <div class="flex items-center gap-3 mb-6">
+        <div>
+          <div class="step-header">
             <div class="step-indicator">4</div>
             <div>
-              <h4 class="font-semibold text-lg">Resumen y Configuracion Final</h4>
-              <p class="text-sm text-muted-foreground">Paso 4 de 4</p>
+              <h4 class="step-title">Resumen y Configuracion Final</h4>
+              <p class="step-subtitle">Paso 4 de 4</p>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-6">
-            <div class="bg-muted/50 rounded-lg p-5 space-y-4">
-              <h5 class="font-medium text-base">Resumen de la Rifa</h5>
-              <div class="space-y-3 text-sm">
-                <div class="flex justify-between">
-                  <span class="text-muted-foreground">Evento:</span>
-                  <span class="font-medium">${state.selectedEvent?.name || ""}</span>
+          <div class="form-grid">
+            <div class="summary-box">
+              <h5 class="summary-title">Resumen de la Rifa</h5>
+              <div class="summary-list">
+                <div class="summary-item">
+                  <span class="summary-item-label">Evento:</span>
+                  <span class="summary-item-value">${state.selectedEvent?.name || ""}</span>
                 </div>
-                <div class="flex justify-between">
-                  <span class="text-muted-foreground">Nombre:</span>
-                  <span class="font-medium">${state.formData.name || "-"}</span>
+                <div class="summary-item">
+                  <span class="summary-item-label">Nombre:</span>
+                  <span class="summary-item-value">${state.formData.name || "-"}</span>
                 </div>
-                <div class="flex justify-between">
-                  <span class="text-muted-foreground">Tipo:</span>
-                  <span class="font-medium">${state.formData.type}</span>
+                <div class="summary-item">
+                  <span class="summary-item-label">Tipo:</span>
+                  <span class="summary-item-value">${state.formData.type}</span>
                 </div>
-                <div class="flex justify-between">
-                  <span class="text-muted-foreground">Areas:</span>
-                  <span class="font-medium">${state.formData.selectedAreas.length > 0 ? state.formData.selectedAreas.join(", ") : "-"}</span>
+                <div class="summary-item">
+                  <span class="summary-item-label">Areas:</span>
+                  <span class="summary-item-value">${state.formData.selectedAreas.length > 0 ? state.formData.selectedAreas.join(", ") : "-"}</span>
                 </div>
               </div>
             </div>
-            <div class="space-y-4">
-              <div class="bg-card border border-border rounded-lg p-5">
-                <div class="flex items-center gap-2 mb-4">
-                  <i data-lucide="gift" class="h-5 w-5 text-primary"></i>
-                  <h5 class="font-medium">Disponibilidad de Regalos</h5>
+            <div>
+              <div class="gifts-availability-card">
+                <div class="gifts-header">
+                  <i data-lucide="gift" class="icon-md" style="color: var(--primary);"></i>
+                  <h5>Disponibilidad de Regalos</h5>
                 </div>
-                <div class="grid grid-cols-3 gap-4 text-center">
+                <div class="gifts-stats">
                   <div>
-                    <div class="text-2xl font-bold">${state.selectedEvent?.totalGifts || 0}</div>
-                    <div class="text-xs text-muted-foreground">Total</div>
+                    <div class="gifts-stat-value">${state.selectedEvent?.totalGifts || 0}</div>
+                    <div class="gifts-stat-label">Total</div>
                   </div>
                   <div>
-                    <div class="text-2xl font-bold text-accent">${assignedGifts}</div>
-                    <div class="text-xs text-muted-foreground">Asignados</div>
+                    <div class="gifts-stat-value" style="color: var(--accent);">${assignedGifts}</div>
+                    <div class="gifts-stat-label">Asignados</div>
                   </div>
                   <div>
-                    <div class="text-2xl font-bold text-success">${availableGifts}</div>
-                    <div class="text-xs text-muted-foreground">Disponibles</div>
+                    <div class="gifts-stat-value" style="color: var(--success);">${availableGifts}</div>
+                    <div class="gifts-stat-label">Disponibles</div>
                   </div>
                 </div>
               </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-2">
-                  <label class="text-sm font-medium">Cantidad de Regalos *</label>
-                  <input type="number" id="form-gifts" class="form-input h-11 ${state.formErrors.gifts ? "error" : ""}" 
+              <div class="final-inputs">
+                <div class="form-group">
+                  <label class="form-label">Cantidad de Regalos *</label>
+                  <input type="number" id="form-gifts" class="form-input ${state.formErrors.gifts ? "error" : ""}" style="height: 44px;"
                     placeholder="0" value="${state.formData.gifts}" min="0" max="${availableGifts}">
-                  ${state.formErrors.gifts ? `<p class="text-xs text-destructive">${state.formErrors.gifts}</p>` : `<p class="text-xs text-muted-foreground">Maximo: ${availableGifts}</p>`}
+                  ${state.formErrors.gifts ? `<p class="form-error">${state.formErrors.gifts}</p>` : `<p class="form-hint">Maximo: ${availableGifts}</p>`}
                 </div>
-                <div class="space-y-2">
-                  <label class="text-sm font-medium">Porcentaje (%)</label>
-                  <input type="number" id="form-percentage" class="form-input h-11" 
+                <div class="form-group">
+                  <label class="form-label">Porcentaje (%)</label>
+                  <input type="number" id="form-percentage" class="form-input" style="height: 44px;"
                     placeholder="0" value="${state.formData.percentage}" max="100">
                 </div>
               </div>
@@ -977,8 +973,8 @@ function renderWizardStep() {
           </div>
         </div>
       `;
-      prevBtn.innerHTML = '<i data-lucide="chevron-left" class="h-4 w-4"></i> Anterior';
-      nextBtn.innerHTML = '<i data-lucide="save" class="h-4 w-4"></i> Guardar Rifa';
+      prevBtn.innerHTML = '<i data-lucide="chevron-left" class="icon-sm"></i> Anterior';
+      nextBtn.innerHTML = '<i data-lucide="save" class="icon-sm"></i> Guardar Rifa';
       nextBtn.className = "btn btn-success";
       break;
   }
@@ -1194,11 +1190,11 @@ function renderCalendar(selectedDate = null) {
       <div class="calendar">
         <div class="calendar-header">
           <button class="btn btn-ghost btn-icon" id="cal-prev">
-            <i data-lucide="chevron-left" class="h-4 w-4"></i>
+            <i data-lucide="chevron-left" class="icon-sm"></i>
           </button>
           <span class="font-medium">${monthNames[month]} ${year}</span>
           <button class="btn btn-ghost btn-icon" id="cal-next">
-            <i data-lucide="chevron-right" class="h-4 w-4"></i>
+            <i data-lucide="chevron-right" class="icon-sm"></i>
           </button>
         </div>
         <div class="calendar-grid">
