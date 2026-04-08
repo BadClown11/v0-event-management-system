@@ -10,7 +10,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { EventCard } from "@/components/events/event-card"
-import { EventDetailSheet } from "@/components/events/event-detail-sheet"
+import { EventDetailModal } from "@/components/events/event-detail-modal"
 import {
   Search,
   CalendarIcon,
@@ -300,11 +300,32 @@ export default function EventsPage() {
         </section>
       </main>
 
-      {/* Event Detail Sheet */}
-      <EventDetailSheet
+      {/* Event Detail Modal */}
+      <EventDetailModal
         open={isSheetOpen}
         onOpenChange={setIsSheetOpen}
-        event={selectedEvent}
+        event={
+          selectedEvent
+            ? {
+                id: selectedEvent.id,
+                name: selectedEvent.name,
+                startDate: selectedEvent.startDate,
+                endDate: selectedEvent.endDate,
+                totalGifts: selectedEvent.totalGifts,
+                assignedGifts: selectedEvent.assignedGifts,
+                raffles: selectedEvent.raffles.map((name, i) => ({
+                  id: i + 1,
+                  name,
+                  type: "area",
+                  manager: "Manager " + (i + 1),
+                  area: "Area " + (i + 1),
+                  employees: Math.floor(Math.random() * 100),
+                  gifts: Math.floor(Math.random() * 50),
+                  percentage: Math.floor(Math.random() * 30),
+                })),
+              }
+            : null
+        }
       />
     </div>
   )
