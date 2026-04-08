@@ -132,6 +132,14 @@ export function EventDetailModal({
   const [addMode, setAddMode] = useState<"form" | "table" | null>(null)
   const [currentStep, setCurrentStep] = useState(1)
   const [copiedRow, setCopiedRow] = useState<Raffle | null>(null)
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null)
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+
+  // Show toast notification
+  const showToast = useCallback((message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 3000)
+  }, [])
   
   // Raffle form state
   const [formData, setFormData] = useState({
@@ -217,6 +225,31 @@ export function EventDetailModal({
   }
 
   const handleNextStep = () => {
+    // Validate current step before proceeding
+    if (currentStep === 2) {
+      const errors: Record<string, string> = {}
+      if (!formData.name.trim()) {
+        errors.name = "El nombre es requerido"
+      }
+      if (!formData.manager) {
+        errors.manager = "Selecciona un manager"
+      }
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors)
+        showToast("Completa los campos requeridos", "error")
+        return
+      }
+    }
+    
+    if (currentStep === 3) {
+      if (formData.selectedAreas.length === 0) {
+        setFormErrors({ areas: "Selecciona al menos un area" })
+        showToast("Selecciona al menos un area", "error")
+        return
+      }
+    }
+    
+    setFormErrors({})
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1)
     }
@@ -229,6 +262,36 @@ export function EventDetailModal({
   }
 
   const handleSaveRaffle = () => {
+    // Validate form
+    const errors: Record<string, string> = {}
+    
+    if (!formData.name.trim()) {
+      errors.name = "El nombre es requerido"
+    }
+    if (!formData.manager) {
+      errors.manager = "Selecciona un manager"
+    }
+    if (formData.selectedAreas.length === 0) {
+      errors.areas = "Selecciona al menos un area"
+    }
+    
+    const giftsNum = parseInt(formData.gifts) || 0
+    const assignedGifts = raffles.reduce((sum, r) => sum + r.gifts, 0)
+    const availableGifts = (event?.totalGifts || 0) - assignedGifts
+    
+    if (giftsNum > availableGifts) {
+      errors.gifts = `Solo hay ${availableGifts} regalos disponibles`
+    }
+    if (giftsNum < 0) {
+      errors.gifts = "La cantidad no puede ser negativa"
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors)
+      showToast("Por favor corrige los errores del formulario", "error")
+      return
+    }
+
     const newRaffle: Raffle = {
       id: Date.now(),
       name: formData.name,
@@ -244,12 +307,12 @@ export function EventDetailModal({
       percentage: parseInt(formData.percentage) || 0,
     }
     setRaffles([...raffles, newRaffle])
+    showToast("Rifa creada correctamente", "success")
     resetForm()
   }
 
   // Table editing functions
   const addEmptyRow = useCallback(() => {
-    console.log("[v0] addEmptyRow called")
     const newRow: Raffle = {
       id: Date.now(),
       name: "",
@@ -266,25 +329,65 @@ export function EventDetailModal({
       isEditing: true,
       isNew: true,
     }
-    console.log("[v0] New row created:", newRow)
-    setRaffles((prev) => {
-      console.log("[v0] Previous raffles:", prev.length, "Adding new row")
-      return [...prev, newRow]
-    })
+    setRaffles((prev) => [...prev, newRow])
   }, [])
 
   const updateRaffle = (id: number, field: keyof Raffle, value: string | number) => {
+    // Validate gifts don't exceed available
+    if (field === "gifts") {
+      const numValue = typeof value === "string" ? parseInt(value) || 0 : value
+      const otherRafflesGifts = raffles
+        .filter((r) => r.id !== id)
+        .reduce((sum, r) => sum + r.gifts, 0)
+      const maxGifts = (event?.totalGifts || 0) - otherRafflesGifts
+      
+      if (numValue > maxGifts) {
+        showToast(`Maximo ${maxGifts} regalos disponibles`, "error")
+        return
+      }
+      if (numValue < 0) {
+        showToast("No puede ser negativo", "error")
+        return
+      }
+    }
+    
     setRaffles(
       raffles.map((r) => (r.id === id ? { ...r, [field]: value } : r))
     )
   }
 
   const saveRow = (id: number) => {
+    const raffle = raffles.find((r) => r.id === id)
+    if (!raffle) return
+
+    // Validate required fields
+    if (!raffle.name.trim()) {
+      showToast("El nombre de la rifa es requerido", "error")
+      return
+    }
+
+    // Calculate current assigned gifts excluding this row
+    const otherRafflesGifts = raffles
+      .filter((r) => r.id !== id)
+      .reduce((sum, r) => sum + r.gifts, 0)
+    const maxGiftsForThisRow = (event?.totalGifts || 0) - otherRafflesGifts
+
+    if (raffle.gifts > maxGiftsForThisRow) {
+      showToast(`Solo hay ${maxGiftsForThisRow} regalos disponibles`, "error")
+      return
+    }
+
+    if (raffle.gifts < 0) {
+      showToast("La cantidad de regalos no puede ser negativa", "error")
+      return
+    }
+
     setRaffles(
       raffles.map((r) =>
         r.id === id ? { ...r, isEditing: false, isNew: false } : r
       )
     )
+    showToast("Rifa guardada correctamente", "success")
   }
 
   const deleteRow = (id: number) => {
@@ -306,6 +409,7 @@ export function EventDetailModal({
 
   const copyRow = (raffle: Raffle) => {
     setCopiedRow({ ...raffle, id: 0, isEditing: false, isNew: false })
+    showToast("Fila copiada al portapapeles", "success")
   }
 
   const pasteRow = useCallback(() => {
@@ -551,15 +655,19 @@ export function EventDetailModal({
 
                           <div className="grid grid-cols-2 gap-5">
                             <div className="space-y-2">
-                              <Label>Nombre de la Rifa</Label>
+                              <Label>Nombre de la Rifa *</Label>
                               <Input
                                 placeholder="Ej: Rifa Area RH"
                                 value={formData.name}
-                                onChange={(e) =>
+                                onChange={(e) => {
                                   setFormData({ ...formData, name: e.target.value })
-                                }
-                                className="h-11"
+                                  if (formErrors.name) setFormErrors({ ...formErrors, name: "" })
+                                }}
+                                className={cn("h-11", formErrors.name && "border-destructive")}
                               />
+                              {formErrors.name && (
+                                <p className="text-xs text-destructive">{formErrors.name}</p>
+                              )}
                             </div>
                             <div className="space-y-2">
                               <Label>Tipo de Rifa</Label>
@@ -577,12 +685,15 @@ export function EventDetailModal({
                               </Select>
                             </div>
                             <div className="col-span-2 space-y-2">
-                              <Label>Manager Responsable</Label>
+                              <Label>Manager Responsable *</Label>
                               <Select
                                 value={formData.manager}
-                                onValueChange={(v) => setFormData({ ...formData, manager: v })}
+                                onValueChange={(v) => {
+                                  setFormData({ ...formData, manager: v })
+                                  if (formErrors.manager) setFormErrors({ ...formErrors, manager: "" })
+                                }}
                               >
-                                <SelectTrigger className="h-11">
+                                <SelectTrigger className={cn("h-11", formErrors.manager && "border-destructive")}>
                                   <SelectValue placeholder="Selecciona un manager" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -593,6 +704,9 @@ export function EventDetailModal({
                                   ))}
                                 </SelectContent>
                               </Select>
+                              {formErrors.manager && (
+                                <p className="text-xs text-destructive">{formErrors.manager}</p>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -616,15 +730,22 @@ export function EventDetailModal({
                             <div className="space-y-3">
                               <div className="flex items-center gap-2">
                                 <Building2 className="h-5 w-5 text-primary" />
-                                <Label className="text-base">Areas</Label>
+                                <Label className="text-base">Areas *</Label>
                               </div>
-                              <div className="border rounded-lg p-4 max-h-48 overflow-y-auto space-y-3">
+                              {formErrors.areas && (
+                                <p className="text-xs text-destructive">{formErrors.areas}</p>
+                              )}
+                              <div className={cn(
+                                "border rounded-lg p-4 max-h-48 overflow-y-auto space-y-3",
+                                formErrors.areas && "border-destructive"
+                              )}>
                                 {AREAS.map((area) => (
                                   <div key={area} className="flex items-center gap-3">
                                     <Checkbox
                                       id={area}
                                       checked={formData.selectedAreas.includes(area)}
                                       onCheckedChange={(checked) => {
+                                        if (formErrors.areas) setFormErrors({ ...formErrors, areas: "" })
                                         if (checked) {
                                           setFormData({
                                             ...formData,
@@ -793,19 +914,26 @@ export function EventDetailModal({
 
                               <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <Label>Cantidad de Regalos</Label>
+                                  <Label>Cantidad de Regalos *</Label>
                                   <Input
                                     type="number"
                                     placeholder="0"
-                                    className="h-11"
+                                    className={cn("h-11", formErrors.gifts && "border-destructive")}
                                     value={formData.gifts}
-                                    onChange={(e) =>
+                                    onChange={(e) => {
                                       setFormData({ ...formData, gifts: e.target.value })
-                                    }
+                                      if (formErrors.gifts) setFormErrors({ ...formErrors, gifts: "" })
+                                    }}
+                                    min={0}
+                                    max={availableGifts}
                                   />
-                                  <p className="text-xs text-muted-foreground">
-                                    Maximo: {availableGifts}
-                                  </p>
+                                  {formErrors.gifts ? (
+                                    <p className="text-xs text-destructive">{formErrors.gifts}</p>
+                                  ) : (
+                                    <p className="text-xs text-muted-foreground">
+                                      Maximo: {availableGifts}
+                                    </p>
+                                  )}
                                 </div>
                                 <div className="space-y-2">
                                   <Label>Porcentaje (%)</Label>
@@ -859,7 +987,6 @@ export function EventDetailModal({
                 )}
 
                 {/* Table Container with scroll */}
-                {console.log("[v0] Rendering table with raffles:", raffles.length, raffles.map(r => ({id: r.id, name: r.name, isNew: r.isNew, isEditing: r.isEditing})))}
                 <div className="flex-1 border rounded-xl bg-card min-h-0 overflow-auto">
                   <div className="min-w-[1400px]">
                     <table className="w-full border-collapse">
@@ -1175,6 +1302,31 @@ export function EventDetailModal({
             )}
           </div>
         </div>
+
+        {/* Toast Notification */}
+        {toast && (
+          <div
+            className={cn(
+              "fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-xl shadow-lg transition-all animate-in slide-in-from-bottom-4 duration-300",
+              toast.type === "success"
+                ? "bg-success text-success-foreground"
+                : "bg-destructive text-destructive-foreground"
+            )}
+          >
+            {toast.type === "success" ? (
+              <Check className="h-5 w-5" />
+            ) : (
+              <AlertCircle className="h-5 w-5" />
+            )}
+            <span className="font-medium">{toast.message}</span>
+            <button
+              onClick={() => setToast(null)}
+              className="ml-2 hover:opacity-70"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )
