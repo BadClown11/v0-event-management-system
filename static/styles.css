@@ -1,0 +1,454 @@
+/* ===================================
+   Event Management System - Custom Styles
+   =================================== */
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: oklch(0.94 0.01 250);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.7 0.02 250);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.6 0.02 250);
+}
+
+/* Event Card Styles */
+.event-card {
+  position: relative;
+  cursor: pointer;
+  border-radius: 0.75rem;
+  border: 1px solid oklch(0.9 0.01 250);
+  background: oklch(1 0 0);
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  transition: all 0.3s ease;
+}
+
+.event-card:hover {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  border-color: oklch(0.35 0.12 250 / 0.3);
+  transform: translateY(-4px);
+}
+
+.event-card.closed {
+  opacity: 0.75;
+}
+
+.event-card .status-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 0.75rem 0.75rem 0 0;
+}
+
+.event-card .status-bar.open {
+  background: oklch(0.6 0.15 160);
+}
+
+.event-card .status-bar.closed {
+  background: oklch(0.5 0.02 250 / 0.4);
+}
+
+.event-card .hover-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 0.75rem;
+  background: oklch(0.35 0.12 250 / 0.05);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.event-card:hover .hover-overlay {
+  opacity: 1;
+}
+
+.event-card:hover .card-title {
+  color: oklch(0.35 0.12 250);
+}
+
+/* Badge Styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+}
+
+.badge-default {
+  background: oklch(0.35 0.12 250);
+  color: oklch(0.98 0 0);
+}
+
+.badge-secondary {
+  background: oklch(0.95 0.01 250);
+  color: oklch(0.25 0.08 250);
+}
+
+.badge-success {
+  background: oklch(0.6 0.15 160);
+  color: oklch(0.98 0 0);
+}
+
+.badge-outline {
+  background: oklch(0.95 0.01 250 / 0.5);
+  border: 1px solid oklch(0.9 0.01 250);
+  color: oklch(0.2 0.02 250);
+}
+
+.badge-outline:hover {
+  background: oklch(0.95 0.01 250);
+}
+
+/* Raffles scroll container */
+.raffles-scroll {
+  display: flex;
+  gap: 0.375rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.raffles-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+/* Tab Buttons */
+.tab-btn {
+  color: oklch(0.5 0.02 250);
+}
+
+.tab-btn:hover:not(.active) {
+  background: oklch(0.94 0.01 250);
+  color: oklch(0.2 0.02 250);
+}
+
+.tab-btn.active {
+  background: oklch(0.35 0.12 250);
+  color: oklch(0.98 0 0);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+/* Form Input Styles */
+.form-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid oklch(0.92 0.01 250);
+  background: oklch(1 0 0);
+  color: oklch(0.2 0.02 250);
+  font-size: 0.875rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: oklch(0.35 0.12 250);
+  box-shadow: 0 0 0 2px oklch(0.35 0.12 250 / 0.2);
+}
+
+.form-input::placeholder {
+  color: oklch(0.5 0.02 250);
+}
+
+.form-input.error {
+  border-color: oklch(0.55 0.2 25);
+}
+
+/* Select Styles */
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+/* Checkbox Styles */
+.form-checkbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid oklch(0.9 0.01 250);
+  background: oklch(1 0 0);
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.form-checkbox:checked {
+  background: oklch(0.35 0.12 250);
+  border-color: oklch(0.35 0.12 250);
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+}
+
+/* Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary {
+  background: oklch(0.35 0.12 250);
+  color: oklch(0.98 0 0);
+}
+
+.btn-primary:hover {
+  background: oklch(0.3 0.12 250);
+}
+
+.btn-secondary {
+  background: oklch(0.95 0.01 250);
+  color: oklch(0.25 0.08 250);
+}
+
+.btn-secondary:hover {
+  background: oklch(0.9 0.01 250);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid oklch(0.92 0.01 250);
+  color: oklch(0.2 0.02 250);
+}
+
+.btn-outline:hover {
+  background: oklch(0.94 0.01 250);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: oklch(0.5 0.02 250);
+}
+
+.btn-ghost:hover {
+  background: oklch(0.94 0.01 250);
+  color: oklch(0.2 0.02 250);
+}
+
+.btn-success {
+  background: oklch(0.6 0.15 160);
+  color: oklch(0.98 0 0);
+}
+
+.btn-success:hover {
+  background: oklch(0.55 0.15 160);
+}
+
+.btn-destructive {
+  background: oklch(0.55 0.2 25);
+  color: oklch(0.98 0 0);
+}
+
+.btn-destructive:hover {
+  background: oklch(0.5 0.2 25);
+}
+
+.btn-icon {
+  padding: 0.5rem;
+  min-width: 2rem;
+  min-height: 2rem;
+}
+
+/* Table Row Styles */
+.table-row-editing {
+  background: oklch(0.35 0.12 250 / 0.05);
+}
+
+.table-row-new {
+  background: oklch(0.35 0.12 250 / 0.05);
+}
+
+/* Modal Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+#event-modal:not(.hidden) {
+  animation: fadeIn 0.2s ease-out;
+}
+
+#event-modal:not(.hidden) > div:last-child > div {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Toast Animations */
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  animation: slideInFromBottom 0.3s ease-out;
+}
+
+.toast-success {
+  background: oklch(0.6 0.15 160);
+  color: oklch(0.98 0 0);
+}
+
+.toast-error {
+  background: oklch(0.55 0.2 25);
+  color: oklch(0.98 0 0);
+}
+
+/* Calendar Styles */
+.calendar {
+  font-size: 0.875rem;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+}
+
+.calendar-day-header {
+  text-align: center;
+  font-weight: 500;
+  color: oklch(0.5 0.02 250);
+  padding: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.calendar-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.calendar-day:hover:not(.disabled):not(.selected) {
+  background: oklch(0.94 0.01 250);
+}
+
+.calendar-day.selected {
+  background: oklch(0.35 0.12 250);
+  color: oklch(0.98 0 0);
+}
+
+.calendar-day.today {
+  border: 1px solid oklch(0.35 0.12 250);
+}
+
+.calendar-day.disabled {
+  color: oklch(0.7 0.01 250);
+  cursor: not-allowed;
+}
+
+.calendar-day.outside {
+  color: oklch(0.7 0.01 250);
+}
+
+/* Wizard Step Indicator */
+.step-indicator {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  background: oklch(0.35 0.12 250);
+  color: oklch(0.98 0 0);
+}
+
+/* Loading Spinner */
+.spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid oklch(0.9 0.01 250);
+  border-top-color: oklch(0.35 0.12 250);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  .event-card {
+    padding: 1rem;
+  }
+  
+  #event-modal > div:last-child > div {
+    border-radius: 1rem;
+  }
+}

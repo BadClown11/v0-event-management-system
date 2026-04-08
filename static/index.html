@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion de Eventos</title>
+  <meta name="description" content="Sistema de gestion de eventos y rifas empresariales">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- date-fns for date formatting -->
+  <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/locale/es/cdn.min.js"></script>
+  
+  <!-- Google Fonts - Geist -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Tailwind Config -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            background: 'oklch(0.98 0.005 250)',
+            foreground: 'oklch(0.2 0.02 250)',
+            card: 'oklch(1 0 0)',
+            'card-foreground': 'oklch(0.2 0.02 250)',
+            popover: 'oklch(1 0 0)',
+            'popover-foreground': 'oklch(0.2 0.02 250)',
+            primary: 'oklch(0.35 0.12 250)',
+            'primary-foreground': 'oklch(0.98 0 0)',
+            secondary: 'oklch(0.95 0.01 250)',
+            'secondary-foreground': 'oklch(0.25 0.08 250)',
+            muted: 'oklch(0.94 0.01 250)',
+            'muted-foreground': 'oklch(0.5 0.02 250)',
+            accent: 'oklch(0.55 0.2 25)',
+            'accent-foreground': 'oklch(0.98 0 0)',
+            destructive: 'oklch(0.55 0.2 25)',
+            'destructive-foreground': 'oklch(0.98 0 0)',
+            border: 'oklch(0.9 0.01 250)',
+            input: 'oklch(0.92 0.01 250)',
+            ring: 'oklch(0.35 0.12 250)',
+            success: 'oklch(0.6 0.15 160)',
+            'success-foreground': 'oklch(0.98 0 0)',
+            warning: 'oklch(0.75 0.15 85)',
+            'warning-foreground': 'oklch(0.2 0.02 85)',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          borderRadius: {
+            lg: '0.75rem',
+            xl: '1rem',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-background font-sans antialiased">
+  <!-- Header -->
+  <header class="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-primary">
+            <i data-lucide="calendar-days" class="h-6 w-6 text-primary-foreground"></i>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold text-foreground">Eventos</h1>
+            <p class="text-sm text-muted-foreground">Gestion de eventos y rifas</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-muted-foreground" id="total-events-count">6 eventos totales</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-6">
+    <!-- Filters Section -->
+    <div class="mb-8 p-4 rounded-xl bg-card border border-border shadow-sm">
+      <div class="flex flex-col sm:flex-row gap-4">
+        <!-- Search -->
+        <div class="relative flex-1">
+          <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Buscar evento por nombre..."
+            class="w-full pl-10 pr-4 py-2 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+        </div>
+
+        <!-- Date filter -->
+        <div class="relative">
+          <button
+            id="date-filter-btn"
+            class="w-full sm:w-[200px] flex items-center gap-2 px-4 py-2 rounded-lg border border-input bg-background text-muted-foreground hover:bg-muted transition-colors"
+          >
+            <i data-lucide="calendar" class="h-4 w-4"></i>
+            <span id="date-filter-text">Filtrar por fecha</span>
+          </button>
+          <!-- Date Picker Popover -->
+          <div id="date-picker-popover" class="hidden absolute right-0 top-full mt-2 z-50 bg-popover border border-border rounded-xl shadow-lg p-4">
+            <div id="calendar-container"></div>
+          </div>
+        </div>
+
+        <!-- Clear filters -->
+        <button
+          id="clear-filters-btn"
+          class="hidden shrink-0 p-2 rounded-lg hover:bg-muted transition-colors"
+        >
+          <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+      </div>
+
+      <!-- Active filters display -->
+      <div id="active-filters" class="hidden flex items-center gap-2 mt-3 pt-3 border-t border-border text-sm text-muted-foreground">
+        <span>Filtros activos:</span>
+        <span id="search-filter-badge" class="hidden px-2 py-0.5 rounded bg-primary/10 text-primary text-xs"></span>
+        <span id="date-filter-badge" class="hidden px-2 py-0.5 rounded bg-primary/10 text-primary text-xs"></span>
+      </div>
+    </div>
+
+    <!-- Open Events Section -->
+    <section class="mb-10">
+      <div class="flex items-center gap-2 mb-4">
+        <i data-lucide="sparkles" class="h-5 w-5 text-success"></i>
+        <h2 class="text-lg font-semibold text-foreground">Eventos Abiertos</h2>
+        <span id="open-events-count" class="px-2 py-0.5 rounded-full bg-success/10 text-success text-xs font-medium">0</span>
+      </div>
+
+      <div id="open-events-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <!-- Cards will be inserted here by JavaScript -->
+      </div>
+
+      <div id="open-events-empty" class="hidden text-center py-12 rounded-xl border border-dashed border-border bg-muted/30">
+        <i data-lucide="calendar-days" class="h-12 w-12 mx-auto text-muted-foreground/50 mb-3"></i>
+        <p class="text-muted-foreground">No hay eventos abiertos</p>
+      </div>
+    </section>
+
+    <!-- Closed Events Section -->
+    <section>
+      <div class="flex items-center gap-2 mb-4">
+        <i data-lucide="calendar-days" class="h-5 w-5 text-muted-foreground"></i>
+        <h2 class="text-lg font-semibold text-foreground">Eventos Cerrados</h2>
+        <span id="closed-events-count" class="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-medium">0</span>
+      </div>
+
+      <div id="closed-events-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <!-- Cards will be inserted here by JavaScript -->
+      </div>
+
+      <div id="closed-events-empty" class="hidden text-center py-12 rounded-xl border border-dashed border-border bg-muted/30">
+        <i data-lucide="calendar-days" class="h-12 w-12 mx-auto text-muted-foreground/50 mb-3"></i>
+        <p class="text-muted-foreground">No hay eventos cerrados</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Event Detail Modal -->
+  <div id="event-modal" class="hidden fixed inset-0 z-50">
+    <!-- Backdrop -->
+    <div id="modal-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    
+    <!-- Modal Content -->
+    <div class="absolute inset-4 md:inset-8 lg:inset-12 flex items-center justify-center">
+      <div class="relative bg-card w-full max-w-[1400px] h-full max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        <!-- Close button -->
+        <button id="modal-close-btn" class="absolute top-4 right-4 z-10 p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-primary to-primary/80 px-8 py-6 text-primary-foreground flex-shrink-0">
+          <h2 id="modal-event-name" class="text-3xl font-bold"></h2>
+          <div class="flex items-center gap-8 mt-4 text-base">
+            <div class="flex items-center gap-2">
+              <i data-lucide="calendar" class="h-5 w-5"></i>
+              <span id="modal-event-dates"></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i data-lucide="gift" class="h-5 w-5"></i>
+              <span id="modal-total-gifts"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="flex flex-1 min-h-0">
+          <!-- Sidebar -->
+          <div class="w-56 border-r border-border bg-muted/30 p-4 flex-shrink-0 flex flex-col">
+            <nav class="space-y-2">
+              <button
+                id="tab-rifas"
+                class="tab-btn active w-full flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-medium transition-all"
+                data-tab="rifas"
+              >
+                <i data-lucide="gift" class="h-5 w-5"></i>
+                Rifas
+              </button>
+              <button
+                id="tab-asignacion"
+                class="tab-btn w-full flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-medium transition-all"
+                data-tab="asignacion"
+              >
+                <i data-lucide="users" class="h-5 w-5"></i>
+                Asignacion de regalos
+              </button>
+            </nav>
+
+            <!-- Stats -->
+            <div class="mt-auto space-y-4">
+              <div class="bg-card rounded-xl p-5 shadow-sm border border-border">
+                <div class="text-sm text-muted-foreground mb-2">Regalos asignados</div>
+                <div id="sidebar-assigned-gifts" class="text-3xl font-bold text-primary">0</div>
+                <div class="h-2.5 bg-muted rounded-full mt-3 overflow-hidden">
+                  <div id="sidebar-progress-bar" class="h-full bg-primary rounded-full transition-all" style="width: 0%"></div>
+                </div>
+              </div>
+              <div class="bg-card rounded-xl p-5 shadow-sm border border-border">
+                <div class="text-sm text-muted-foreground mb-2">Disponibles</div>
+                <div id="sidebar-available-gifts" class="text-3xl font-bold text-success">0</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Content Area -->
+          <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <!-- Rifas Tab Content -->
+            <div id="tab-content-rifas" class="tab-content flex-1 flex flex-col min-h-0 p-6">
+              <!-- Action Bar -->
+              <div class="flex items-center justify-between mb-5 flex-shrink-0">
+                <h3 class="text-xl font-semibold">Rifas del Evento</h3>
+                
+                <div id="add-buttons" class="flex gap-3">
+                  <button
+                    id="add-form-btn"
+                    class="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-input bg-background hover:bg-muted transition-colors"
+                  >
+                    <i data-lucide="file-text" class="h-4 w-4"></i>
+                    Agregar con Formulario
+                  </button>
+                  <button
+                    id="add-table-btn"
+                    class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                  >
+                    <i data-lucide="table-2" class="h-4 w-4"></i>
+                    Agregar en Tabla
+                  </button>
+                </div>
+
+                <div id="table-mode-buttons" class="hidden flex gap-3 items-center">
+                  <button
+                    id="new-row-btn"
+                    class="flex items-center gap-2 px-4 py-2 rounded-lg border border-input bg-background hover:bg-muted transition-colors"
+                  >
+                    <i data-lucide="plus" class="h-4 w-4"></i>
+                    Nueva Fila
+                  </button>
+                  <button
+                    id="paste-row-btn"
+                    class="flex items-center gap-2 px-4 py-2 rounded-lg border border-input bg-background hover:bg-muted transition-colors disabled:opacity-50"
+                    disabled
+                  >
+                    <i data-lucide="clipboard-paste" class="h-4 w-4"></i>
+                    Pegar Fila
+                  </button>
+                  <div class="flex items-center gap-2 text-sm text-muted-foreground bg-muted/70 px-4 py-2 rounded-lg">
+                    <i data-lucide="alert-circle" class="h-4 w-4"></i>
+                    Puedes pegar desde Excel (Ctrl+V)
+                  </div>
+                  <button
+                    id="exit-table-mode-btn"
+                    class="p-2 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <i data-lucide="x" class="h-5 w-5"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Wizard Form -->
+              <div id="wizard-form" class="hidden bg-card border border-border rounded-xl shadow-sm mb-5 overflow-hidden flex-shrink-0">
+                <!-- Progress Bar -->
+                <div class="h-1.5 bg-muted">
+                  <div id="wizard-progress" class="h-full bg-primary transition-all duration-300" style="width: 25%"></div>
+                </div>
+
+                <div class="p-6">
+                  <!-- Step Content -->
+                  <div id="wizard-step-content"></div>
+
+                  <!-- Navigation -->
+                  <div class="flex justify-between mt-6 pt-5 border-t border-border">
+                    <button id="wizard-prev-btn" class="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-input bg-background hover:bg-muted transition-colors">
+                      Cancelar
+                    </button>
+                    <button id="wizard-next-btn" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                      Siguiente
+                      <i data-lucide="chevron-right" class="h-4 w-4"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Table Container -->
+              <div class="flex-1 border border-border rounded-xl bg-card min-h-0 overflow-auto">
+                <div class="min-w-[1400px]">
+                  <table class="w-full border-collapse">
+                    <thead class="bg-muted/50 sticky top-0 z-10">
+                      <tr>
+                        <th class="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">Nombre Rifa</th>
+                        <th class="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">Tipo</th>
+                        <th class="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">Manager</th>
+                        <th class="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">Area</th>
+                        <th class="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">Departamento</th>
+                        <th class="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">Nivel</th>
+                        <th class="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">Antiguedad</th>
+                        <th class="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">Tipo Contrato</th>
+                        <th class="px-4 py-4 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">Empleados</th>
+                        <th class="px-4 py-4 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap"># Regalos</th>
+                        <th class="px-4 py-4 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">%</th>
+                        <th class="px-4 py-4 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody id="raffles-table-body" class="divide-y divide-border">
+                      <!-- Rows will be inserted here by JavaScript -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Asignacion Tab Content -->
+            <div id="tab-content-asignacion" class="tab-content hidden flex-1 p-6 overflow-auto">
+              <div class="text-center py-16 text-muted-foreground">
+                <i data-lucide="gift" class="h-16 w-16 mx-auto mb-4 opacity-30"></i>
+                <h3 class="text-xl font-medium mb-2">Asignacion de Regalos a Rifas</h3>
+                <p class="text-sm">Esta seccion te permite asignar regalos a las rifas creadas</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50"></div>
+
+  <!-- Main JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>

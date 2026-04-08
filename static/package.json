@@ -1,0 +1,10 @@
+{
+  "name": "event-management-static",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Sistema de gestion de eventos - Version HTML/CSS/JS para .NET",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  }
+}
