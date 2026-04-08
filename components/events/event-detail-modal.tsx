@@ -249,6 +249,7 @@ export function EventDetailModal({
 
   // Table editing functions
   const addEmptyRow = useCallback(() => {
+    console.log("[v0] addEmptyRow called")
     const newRow: Raffle = {
       id: Date.now(),
       name: "",
@@ -265,7 +266,11 @@ export function EventDetailModal({
       isEditing: true,
       isNew: true,
     }
-    setRaffles((prev) => [...prev, newRow])
+    console.log("[v0] New row created:", newRow)
+    setRaffles((prev) => {
+      console.log("[v0] Previous raffles:", prev.length, "Adding new row")
+      return [...prev, newRow]
+    })
   }, [])
 
   const updateRaffle = (id: number, field: keyof Raffle, value: string | number) => {
@@ -357,7 +362,7 @@ export function EventDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[1400px] h-[90vh] p-0 flex flex-col overflow-hidden">
+      <DialogContent className="!max-w-[95vw] sm:!max-w-[95vw] w-[1400px] h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-primary to-primary/80 px-8 py-6 text-primary-foreground flex-shrink-0">
           <DialogHeader>
@@ -381,9 +386,9 @@ export function EventDetailModal({
         </div>
 
         {/* Content */}
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 min-h-0">
           {/* Sidebar */}
-          <div className="w-64 border-r bg-muted/30 p-5 flex-shrink-0 flex flex-col">
+          <div className="w-56 border-r bg-muted/30 p-4 flex-shrink-0 flex flex-col">
             <nav className="space-y-2">
               <button
                 onClick={() => setActiveTab("rifas")}
@@ -431,10 +436,10 @@ export function EventDetailModal({
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
             {/* Rifas Tab */}
             {activeTab === "rifas" && (
-              <div className="flex-1 flex flex-col overflow-hidden p-6">
+              <div className="flex-1 flex flex-col min-h-0 p-6">
                 {/* Action Bar */}
                 <div className="flex items-center justify-between mb-5 flex-shrink-0">
                   <h3 className="text-xl font-semibold">Rifas del Evento</h3>
@@ -854,9 +859,10 @@ export function EventDetailModal({
                 )}
 
                 {/* Table Container with scroll */}
-                <div className="flex-1 border rounded-xl overflow-hidden bg-card min-h-0">
-                  <div className="h-full overflow-auto">
-                    <table className="w-full" style={{ minWidth: "1600px" }}>
+                {console.log("[v0] Rendering table with raffles:", raffles.length, raffles.map(r => ({id: r.id, name: r.name, isNew: r.isNew, isEditing: r.isEditing})))}
+                <div className="flex-1 border rounded-xl bg-card min-h-0 overflow-auto">
+                  <div className="min-w-[1400px]">
+                    <table className="w-full border-collapse">
                       <thead className="bg-muted/50 sticky top-0 z-10">
                         <tr>
                           <th className="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
