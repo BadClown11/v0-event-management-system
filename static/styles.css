@@ -149,6 +149,18 @@ body {
   text-align: center;
 }
 
+.text-accent {
+  color: var(--accent);
+}
+
+.icon-primary {
+  color: var(--primary);
+}
+
+.icon-accent {
+  color: var(--accent);
+}
+
 .font-medium {
   font-weight: 500;
 }
@@ -651,6 +663,18 @@ body {
   padding: var(--spacing-sm);
   min-width: 36px;
   min-height: 36px;
+}
+
+.btn-primary-text {
+  color: var(--primary);
+}
+
+.btn-success-text {
+  color: var(--success);
+}
+
+.btn-danger-text {
+  color: var(--destructive);
 }
 
 /* ===================================
@@ -1278,6 +1302,12 @@ body {
 
 .table-input-lg {
   min-width: 180px;
+}
+
+.cell-truncate {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ===================================

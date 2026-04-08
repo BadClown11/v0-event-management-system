@@ -1,10 +1,10 @@
 // ===================================
 // Event Management System - Main JavaScript
+// Sin dependencias de Tailwind ni Lucide
+// Usa Font Awesome para iconos
 // ===================================
 
-// Initialize Lucide icons
 document.addEventListener('DOMContentLoaded', () => {
-  lucide.createIcons();
   initializeApp();
 });
 
@@ -200,9 +200,24 @@ let state = {
 // Utility Functions
 // ===================================
 
-function formatDate(dateStr) {
-  const date = new Date(dateStr);
-  return dateFns.format(date, "PPP", { locale: dateFns.locale.es });
+const MONTH_NAMES = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+];
+
+function formatDateLong(dateStr) {
+  const date = parseDate(dateStr);
+  const day = date.getDate();
+  const month = MONTH_NAMES[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day} de ${month} de ${year}`;
+}
+
+function formatDateShort(date) {
+  const day = date.getDate();
+  const month = MONTH_NAMES[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day} de ${month.substring(0, 3)} de ${year}`;
 }
 
 function parseDate(dateStr) {
@@ -210,28 +225,24 @@ function parseDate(dateStr) {
   return new Date(parts[2], parts[0] - 1, parts[1]);
 }
 
+function isSameDay(date1, date2) {
+  return date1.getDate() === date2.getDate() &&
+         date1.getMonth() === date2.getMonth() &&
+         date1.getFullYear() === date2.getFullYear();
+}
+
 function showToast(message, type = "success") {
   const container = document.getElementById("toast-container");
   const toast = document.createElement("div");
   toast.className = `toast toast-${type}`;
   toast.innerHTML = `
-    <i data-lucide="${type === "success" ? "check" : "alert-circle"}" class="icon-md"></i>
+    <i class="fa-solid ${type === "success" ? "fa-check" : "fa-circle-exclamation"}"></i>
     <span class="font-medium">${message}</span>
     <button onclick="this.parentElement.remove()">
-      <i data-lucide="x" class="icon-sm"></i>
+      <i class="fa-solid fa-xmark"></i>
     </button>
   `;
   container.appendChild(toast);
-  
-  // Re-create icons in toast
-  toast.querySelectorAll('[data-lucide]').forEach(el => {
-    const iconName = el.getAttribute('data-lucide');
-    el.innerHTML = '';
-    const iconSvg = lucide.icons[iconName];
-    if (iconSvg) {
-      el.innerHTML = iconSvg.toSvg({ class: el.className });
-    }
-  });
   
   setTimeout(() => {
     toast.remove();
@@ -260,18 +271,18 @@ function createEventCard(event) {
 
     <div class="card-content">
       <div class="card-info-row">
-        <i data-lucide="calendar" class="icon-sm" style="color: var(--primary);"></i>
+        <i class="fa-regular fa-calendar icon-primary"></i>
         <span>${event.startDate} - ${event.endDate}</span>
       </div>
 
       <div class="card-info-row">
-        <i data-lucide="gift" class="icon-sm" style="color: var(--accent);"></i>
+        <i class="fa-solid fa-gift icon-accent"></i>
         <span>${event.totalGifts} regalos asignados</span>
       </div>
 
       <div class="card-divider">
         <div class="raffles-header">
-          <i data-lucide="ticket" class="icon-sm" style="color: var(--primary);"></i>
+          <i class="fa-solid fa-ticket icon-primary"></i>
           <span class="text-xs font-medium text-muted">Rifas asignadas (${event.raffles.length})</span>
         </div>
         <div class="raffles-scroll">
@@ -362,9 +373,6 @@ function renderEvents() {
       : "No hay eventos cerrados";
   }
 
-  // Re-initialize icons
-  lucide.createIcons();
-
   // Update active filters display
   updateFiltersDisplay();
 }
@@ -389,7 +397,7 @@ function updateFiltersDisplay() {
 
     if (state.selectedDate) {
       dateBadge.classList.remove("hidden");
-      dateBadge.textContent = `Fecha: ${dateFns.format(state.selectedDate, "PP", { locale: dateFns.locale.es })}`;
+      dateBadge.textContent = `Fecha: ${formatDateShort(state.selectedDate)}`;
     } else {
       dateBadge.classList.add("hidden");
     }
@@ -424,7 +432,6 @@ function openEventModal(event) {
   updateAddModeUI();
 
   document.body.style.overflow = "hidden";
-  lucide.createIcons();
 }
 
 function closeEventModal() {
@@ -514,8 +521,6 @@ function renderRafflesTable() {
 
     tbody.appendChild(row);
   });
-
-  lucide.createIcons();
 }
 
 function createEditableRow(raffle) {
@@ -580,11 +585,11 @@ function createEditableRow(raffle) {
     </td>
     <td>
       <div class="table-actions">
-        <button class="btn btn-ghost btn-icon" style="color: var(--success);" onclick="saveRow(${raffle.id})">
-          <i data-lucide="check" class="icon-sm"></i>
+        <button class="btn btn-ghost btn-icon btn-success-text" onclick="saveRow(${raffle.id})">
+          <i class="fa-solid fa-check"></i>
         </button>
-        <button class="btn btn-ghost btn-icon" style="color: var(--destructive);" onclick="cancelEditing(${raffle.id})">
-          <i data-lucide="x" class="icon-sm"></i>
+        <button class="btn btn-ghost btn-icon btn-danger-text" onclick="cancelEditing(${raffle.id})">
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
     </td>
@@ -597,7 +602,7 @@ function createReadOnlyRow(raffle) {
     <td>
       <span class="badge badge-secondary">${raffle.type}</span>
     </td>
-    <td class="text-muted" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${raffle.manager}</td>
+    <td class="text-muted cell-truncate">${raffle.manager}</td>
     <td>${raffle.area}</td>
     <td>${raffle.department}</td>
     <td>${raffle.level}</td>
@@ -612,14 +617,14 @@ function createReadOnlyRow(raffle) {
     <td class="text-center text-muted">${raffle.percentage}%</td>
     <td>
       <div class="table-actions">
-        <button class="btn btn-ghost btn-icon" style="color: var(--primary);" onclick="startEditing(${raffle.id})">
-          <i data-lucide="pencil" class="icon-sm"></i>
+        <button class="btn btn-ghost btn-icon btn-primary-text" onclick="startEditing(${raffle.id})">
+          <i class="fa-solid fa-pencil"></i>
         </button>
         <button class="btn btn-ghost btn-icon text-muted" onclick="copyRow(${raffle.id})">
-          <i data-lucide="copy" class="icon-sm"></i>
+          <i class="fa-regular fa-copy"></i>
         </button>
-        <button class="btn btn-ghost btn-icon" style="color: var(--destructive);" onclick="deleteRow(${raffle.id})">
-          <i data-lucide="trash-2" class="icon-sm"></i>
+        <button class="btn btn-ghost btn-icon btn-danger-text" onclick="deleteRow(${raffle.id})">
+          <i class="fa-solid fa-trash"></i>
         </button>
       </div>
     </td>
@@ -779,14 +784,14 @@ function renderWizardStep() {
           </div>
           <div class="event-selected-box">
             <div class="event-selected-content">
-              <i data-lucide="check" class="icon-lg"></i>
-              <span class="font-medium" style="font-size: var(--font-size-lg);">Evento seleccionado: ${state.selectedEvent?.name || ""}</span>
+              <i class="fa-solid fa-check"></i>
+              <span class="font-medium" style="font-size: 1.125rem;">Evento seleccionado: ${state.selectedEvent?.name || ""}</span>
             </div>
           </div>
         </div>
       `;
       prevBtn.innerHTML = "Cancelar";
-      nextBtn.innerHTML = 'Siguiente <i data-lucide="chevron-right" class="icon-sm"></i>';
+      nextBtn.innerHTML = 'Siguiente <i class="fa-solid fa-chevron-right"></i>';
       nextBtn.className = "btn btn-primary";
       break;
 
@@ -825,8 +830,8 @@ function renderWizardStep() {
           </div>
         </div>
       `;
-      prevBtn.innerHTML = '<i data-lucide="chevron-left" class="icon-sm"></i> Anterior';
-      nextBtn.innerHTML = 'Siguiente <i data-lucide="chevron-right" class="icon-sm"></i>';
+      prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i> Anterior';
+      nextBtn.innerHTML = 'Siguiente <i class="fa-solid fa-chevron-right"></i>';
       nextBtn.className = "btn btn-primary";
       break;
 
@@ -843,8 +848,8 @@ function renderWizardStep() {
           <div class="form-grid">
             <div class="form-group">
               <div class="filter-header">
-                <i data-lucide="building-2" class="icon-md" style="color: var(--primary);"></i>
-                <label class="form-label" style="font-size: var(--font-size-base);">Areas *</label>
+                <i class="fa-solid fa-building icon-primary"></i>
+                <label class="form-label" style="font-size: 1rem;">Areas *</label>
               </div>
               ${state.formErrors.areas ? `<p class="form-error">${state.formErrors.areas}</p>` : ""}
               <div class="checkbox-list ${state.formErrors.areas ? "error" : ""}">
@@ -861,8 +866,8 @@ function renderWizardStep() {
             </div>
             <div class="filters-panel">
               <div class="filter-header">
-                <i data-lucide="filter" class="icon-md" style="color: var(--primary);"></i>
-                <label class="form-label" style="font-size: var(--font-size-base);">Filtros de Empleados</label>
+                <i class="fa-solid fa-filter icon-primary"></i>
+                <label class="form-label" style="font-size: 1rem;">Filtros de Empleados</label>
               </div>
               <div class="form-group">
                 <label class="form-label">Tipo de Contrato</label>
@@ -895,8 +900,8 @@ function renderWizardStep() {
           </div>
         </div>
       `;
-      prevBtn.innerHTML = '<i data-lucide="chevron-left" class="icon-sm"></i> Anterior';
-      nextBtn.innerHTML = 'Siguiente <i data-lucide="chevron-right" class="icon-sm"></i>';
+      prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i> Anterior';
+      nextBtn.innerHTML = 'Siguiente <i class="fa-solid fa-chevron-right"></i>';
       nextBtn.className = "btn btn-primary";
       break;
 
@@ -938,7 +943,7 @@ function renderWizardStep() {
             <div>
               <div class="gifts-availability-card">
                 <div class="gifts-header">
-                  <i data-lucide="gift" class="icon-md" style="color: var(--primary);"></i>
+                  <i class="fa-solid fa-gift icon-primary"></i>
                   <h5>Disponibilidad de Regalos</h5>
                 </div>
                 <div class="gifts-stats">
@@ -947,11 +952,11 @@ function renderWizardStep() {
                     <div class="gifts-stat-label">Total</div>
                   </div>
                   <div>
-                    <div class="gifts-stat-value" style="color: var(--accent);">${assignedGifts}</div>
+                    <div class="gifts-stat-value text-accent">${assignedGifts}</div>
                     <div class="gifts-stat-label">Asignados</div>
                   </div>
                   <div>
-                    <div class="gifts-stat-value" style="color: var(--success);">${availableGifts}</div>
+                    <div class="gifts-stat-value text-success">${availableGifts}</div>
                     <div class="gifts-stat-label">Disponibles</div>
                   </div>
                 </div>
@@ -973,14 +978,13 @@ function renderWizardStep() {
           </div>
         </div>
       `;
-      prevBtn.innerHTML = '<i data-lucide="chevron-left" class="icon-sm"></i> Anterior';
-      nextBtn.innerHTML = '<i data-lucide="save" class="icon-sm"></i> Guardar Rifa';
+      prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i> Anterior';
+      nextBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Rifa';
       nextBtn.className = "btn btn-success";
       break;
   }
 
   container.innerHTML = content;
-  lucide.createIcons();
 
   // Add event listeners for form inputs
   if (state.currentStep === 2) {
@@ -1181,20 +1185,15 @@ function renderCalendar(selectedDate = null) {
     const startDay = firstDay.getDay();
     const daysInMonth = lastDay.getDate();
 
-    const monthNames = [
-      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-    ];
-
     let html = `
       <div class="calendar">
         <div class="calendar-header">
           <button class="btn btn-ghost btn-icon" id="cal-prev">
-            <i data-lucide="chevron-left" class="icon-sm"></i>
+            <i class="fa-solid fa-chevron-left"></i>
           </button>
-          <span class="font-medium">${monthNames[month]} ${year}</span>
+          <span class="font-medium">${MONTH_NAMES[month]} ${year}</span>
           <button class="btn btn-ghost btn-icon" id="cal-next">
-            <i data-lucide="chevron-right" class="icon-sm"></i>
+            <i class="fa-solid fa-chevron-right"></i>
           </button>
         </div>
         <div class="calendar-grid">
@@ -1215,8 +1214,8 @@ function renderCalendar(selectedDate = null) {
     // Days
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
-      const isToday = dateFns.isSameDay(date, today);
-      const isSelected = state.selectedDate && dateFns.isSameDay(date, state.selectedDate);
+      const isToday = isSameDay(date, today);
+      const isSelected = state.selectedDate && isSameDay(date, state.selectedDate);
 
       html += `
         <div class="calendar-day ${isToday ? "today" : ""} ${isSelected ? "selected" : ""}" 
@@ -1226,7 +1225,6 @@ function renderCalendar(selectedDate = null) {
 
     html += `</div></div>`;
     container.innerHTML = html;
-    lucide.createIcons();
 
     // Add event listeners
     document.getElementById("cal-prev")?.addEventListener("click", () => {
@@ -1243,11 +1241,7 @@ function renderCalendar(selectedDate = null) {
       if (el.dataset.date) {
         el.addEventListener("click", () => {
           state.selectedDate = new Date(el.dataset.date);
-          document.getElementById("date-filter-text").textContent = dateFns.format(
-            state.selectedDate,
-            "PPP",
-            { locale: dateFns.locale.es }
-          );
+          document.getElementById("date-filter-text").textContent = formatDateShort(state.selectedDate);
           document.getElementById("date-picker-popover").classList.add("hidden");
           renderEvents();
         });

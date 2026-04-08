@@ -6,12 +6,8 @@
   <title>Gestion de Eventos</title>
   <meta name="description" content="Sistema de gestion de eventos y rifas empresariales">
   
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  
-  <!-- date-fns for date formatting -->
-  <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/locale/es/cdn.min.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <!-- Google Fonts - Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,7 +23,7 @@
     <div class="container header-content">
       <div class="header-left">
         <div class="header-icon">
-          <i data-lucide="calendar-days" class="icon-md"></i>
+          <i class="fa-solid fa-calendar-days"></i>
         </div>
         <div>
           <h1 class="header-title">Eventos</h1>
@@ -46,7 +42,7 @@
       <div class="filters-row">
         <!-- Search -->
         <div class="search-wrapper">
-          <i data-lucide="search" class="search-icon"></i>
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
           <input
             type="text"
             id="search-input"
@@ -58,7 +54,7 @@
         <!-- Date filter -->
         <div class="date-filter-wrapper">
           <button id="date-filter-btn" class="btn btn-outline date-filter-btn">
-            <i data-lucide="calendar" class="icon-sm"></i>
+            <i class="fa-regular fa-calendar"></i>
             <span id="date-filter-text">Filtrar por fecha</span>
           </button>
           <!-- Date Picker Popover -->
@@ -69,7 +65,7 @@
 
         <!-- Clear filters -->
         <button id="clear-filters-btn" class="btn btn-ghost btn-icon hidden">
-          <i data-lucide="x" class="icon-sm"></i>
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
@@ -84,7 +80,7 @@
     <!-- Open Events Section -->
     <section class="events-section">
       <div class="section-header">
-        <i data-lucide="sparkles" class="icon-md text-success"></i>
+        <i class="fa-solid fa-star text-success"></i>
         <h2 class="section-title">Eventos Abiertos</h2>
         <span id="open-events-count" class="count-badge count-badge-success">0</span>
       </div>
@@ -94,7 +90,7 @@
       </div>
 
       <div id="open-events-empty" class="empty-state hidden">
-        <i data-lucide="calendar-days" class="empty-icon"></i>
+        <i class="fa-regular fa-calendar-days empty-icon"></i>
         <p class="text-muted">No hay eventos abiertos</p>
       </div>
     </section>
@@ -102,7 +98,7 @@
     <!-- Closed Events Section -->
     <section class="events-section">
       <div class="section-header">
-        <i data-lucide="calendar-days" class="icon-md text-muted"></i>
+        <i class="fa-regular fa-calendar-days text-muted"></i>
         <h2 class="section-title">Eventos Cerrados</h2>
         <span id="closed-events-count" class="count-badge count-badge-muted">0</span>
       </div>
@@ -112,7 +108,7 @@
       </div>
 
       <div id="closed-events-empty" class="empty-state hidden">
-        <i data-lucide="calendar-days" class="empty-icon"></i>
+        <i class="fa-regular fa-calendar-days empty-icon"></i>
         <p class="text-muted">No hay eventos cerrados</p>
       </div>
     </section>
@@ -128,7 +124,7 @@
       <div class="modal-content">
         <!-- Close button -->
         <button id="modal-close-btn" class="modal-close-btn">
-          <i data-lucide="x" class="icon-md"></i>
+          <i class="fa-solid fa-xmark"></i>
         </button>
         
         <!-- Header -->
@@ -136,11 +132,11 @@
           <h2 id="modal-event-name" class="modal-title"></h2>
           <div class="modal-meta">
             <div class="modal-meta-item">
-              <i data-lucide="calendar" class="icon-md"></i>
+              <i class="fa-regular fa-calendar"></i>
               <span id="modal-event-dates"></span>
             </div>
             <div class="modal-meta-item">
-              <i data-lucide="gift" class="icon-md"></i>
+              <i class="fa-solid fa-gift"></i>
               <span id="modal-total-gifts"></span>
             </div>
           </div>
@@ -156,7 +152,7 @@
                 class="tab-btn active"
                 data-tab="rifas"
               >
-                <i data-lucide="gift" class="icon-md"></i>
+                <i class="fa-solid fa-gift"></i>
                 Rifas
               </button>
               <button
@@ -164,7 +160,7 @@
                 class="tab-btn"
                 data-tab="asignacion"
               >
-                <i data-lucide="users" class="icon-md"></i>
+                <i class="fa-solid fa-users"></i>
                 Asignacion de regalos
               </button>
             </nav>
@@ -195,30 +191,30 @@
                 
                 <div id="add-buttons" class="action-buttons">
                   <button id="add-form-btn" class="btn btn-outline">
-                    <i data-lucide="file-text" class="icon-sm"></i>
+                    <i class="fa-regular fa-file-lines"></i>
                     Agregar con Formulario
                   </button>
                   <button id="add-table-btn" class="btn btn-primary">
-                    <i data-lucide="table-2" class="icon-sm"></i>
+                    <i class="fa-solid fa-table"></i>
                     Agregar en Tabla
                   </button>
                 </div>
 
                 <div id="table-mode-buttons" class="action-buttons hidden">
                   <button id="new-row-btn" class="btn btn-outline">
-                    <i data-lucide="plus" class="icon-sm"></i>
+                    <i class="fa-solid fa-plus"></i>
                     Nueva Fila
                   </button>
                   <button id="paste-row-btn" class="btn btn-outline" disabled>
-                    <i data-lucide="clipboard-paste" class="icon-sm"></i>
+                    <i class="fa-solid fa-clipboard"></i>
                     Pegar Fila
                   </button>
                   <div class="paste-hint">
-                    <i data-lucide="alert-circle" class="icon-sm"></i>
+                    <i class="fa-solid fa-circle-info"></i>
                     Puedes pegar desde Excel (Ctrl+V)
                   </div>
                   <button id="exit-table-mode-btn" class="btn btn-ghost btn-icon">
-                    <i data-lucide="x" class="icon-md"></i>
+                    <i class="fa-solid fa-xmark"></i>
                   </button>
                 </div>
               </div>
@@ -241,7 +237,7 @@
                     </button>
                     <button id="wizard-next-btn" class="btn btn-primary">
                       Siguiente
-                      <i data-lucide="chevron-right" class="icon-sm"></i>
+                      <i class="fa-solid fa-chevron-right"></i>
                     </button>
                   </div>
                 </div>
@@ -278,7 +274,7 @@
             <!-- Asignacion Tab Content -->
             <div id="tab-content-asignacion" class="tab-content hidden">
               <div class="empty-state-large">
-                <i data-lucide="gift" class="empty-icon-large"></i>
+                <i class="fa-solid fa-gift empty-icon-large"></i>
                 <h3 class="empty-title">Asignacion de Regalos a Rifas</h3>
                 <p class="text-muted text-sm">Esta seccion te permite asignar regalos a las rifas creadas</p>
               </div>
