@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,9 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Calendar,
@@ -130,7 +129,6 @@ export function EventDetailModal({
   onOpenChange,
 }: EventDetailModalProps) {
   const [activeTab, setActiveTab] = useState("rifas")
-  const [showRaffleForm, setShowRaffleForm] = useState(false)
   const [addMode, setAddMode] = useState<"form" | "table" | null>(null)
   const [currentStep, setCurrentStep] = useState(1)
   const [copiedRow, setCopiedRow] = useState<Raffle | null>(null)
@@ -215,7 +213,6 @@ export function EventDetailModal({
       percentage: "",
     })
     setCurrentStep(1)
-    setShowRaffleForm(false)
     setAddMode(null)
   }
 
@@ -251,7 +248,7 @@ export function EventDetailModal({
   }
 
   // Table editing functions
-  const addEmptyRow = () => {
+  const addEmptyRow = useCallback(() => {
     const newRow: Raffle = {
       id: Date.now(),
       name: "",
@@ -268,8 +265,8 @@ export function EventDetailModal({
       isEditing: true,
       isNew: true,
     }
-    setRaffles([...raffles, newRow])
-  }
+    setRaffles((prev) => [...prev, newRow])
+  }, [])
 
   const updateRaffle = (id: number, field: keyof Raffle, value: string | number) => {
     setRaffles(
@@ -306,16 +303,18 @@ export function EventDetailModal({
     setCopiedRow({ ...raffle, id: 0, isEditing: false, isNew: false })
   }
 
-  const pasteRow = () => {
+  const pasteRow = useCallback(() => {
     if (copiedRow) {
       const newRow = { ...copiedRow, id: Date.now(), isNew: true, isEditing: true }
-      setRaffles([...raffles, newRow])
+      setRaffles((prev) => [...prev, newRow])
     }
-  }
+  }, [copiedRow])
 
   // Handle paste from clipboard (Excel-like)
   const handlePaste = useCallback(
     (e: ClipboardEvent) => {
+      if (addMode !== "table") return
+      
       const clipboardData = e.clipboardData?.getData("text")
       if (!clipboardData) return
 
@@ -339,9 +338,9 @@ export function EventDetailModal({
           isEditing: true,
         }
       })
-      setRaffles([...raffles, ...newRaffles])
+      setRaffles((prev) => [...prev, ...newRaffles])
     },
-    [raffles]
+    [addMode]
   )
 
   useEffect(() => {
@@ -358,21 +357,24 @@ export function EventDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-[95vw] w-[1400px] h-[90vh] p-0 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-primary to-primary/80 px-6 py-5 text-primary-foreground">
+        <div className="bg-gradient-to-r from-primary to-primary/80 px-8 py-6 text-primary-foreground flex-shrink-0">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">{event.name}</DialogTitle>
+            <DialogTitle className="text-3xl font-bold">{event.name}</DialogTitle>
+            <DialogDescription className="text-primary-foreground/80 sr-only">
+              Detalles del evento {event.name}
+            </DialogDescription>
           </DialogHeader>
-          <div className="flex items-center gap-6 mt-3 text-sm opacity-90">
+          <div className="flex items-center gap-8 mt-4 text-base">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
+              <Calendar className="h-5 w-5" />
               <span>
                 {event.startDate} - {event.endDate}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Gift className="h-4 w-4" />
+              <Gift className="h-5 w-5" />
               <span>{event.totalGifts} regalos totales</span>
             </div>
           </div>
@@ -381,67 +383,67 @@ export function EventDetailModal({
         {/* Content */}
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar */}
-          <div className="w-56 border-r bg-muted/30 p-4 flex-shrink-0">
-            <nav className="space-y-1">
+          <div className="w-64 border-r bg-muted/30 p-5 flex-shrink-0 flex flex-col">
+            <nav className="space-y-2">
               <button
                 onClick={() => setActiveTab("rifas")}
                 className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all",
+                  "w-full flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-medium transition-all",
                   activeTab === "rifas"
-                    ? "bg-primary text-primary-foreground shadow-md"
+                    ? "bg-primary text-primary-foreground shadow-lg"
                     : "hover:bg-muted text-muted-foreground hover:text-foreground"
                 )}
               >
-                <Gift className="h-4 w-4" />
+                <Gift className="h-5 w-5" />
                 Rifas
               </button>
               <button
                 onClick={() => setActiveTab("asignacion")}
                 className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all",
+                  "w-full flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-medium transition-all",
                   activeTab === "asignacion"
-                    ? "bg-primary text-primary-foreground shadow-md"
+                    ? "bg-primary text-primary-foreground shadow-lg"
                     : "hover:bg-muted text-muted-foreground hover:text-foreground"
                 )}
               >
-                <Users className="h-4 w-4" />
+                <Users className="h-5 w-5" />
                 Asignacion de regalos
               </button>
             </nav>
 
             {/* Stats */}
-            <div className="mt-8 space-y-4">
-              <div className="bg-card rounded-xl p-4 shadow-sm border">
-                <div className="text-xs text-muted-foreground mb-1">Regalos asignados</div>
-                <div className="text-2xl font-bold text-primary">{assignedGifts}</div>
-                <div className="h-2 bg-muted rounded-full mt-2 overflow-hidden">
+            <div className="mt-auto space-y-4">
+              <div className="bg-card rounded-xl p-5 shadow-sm border">
+                <div className="text-sm text-muted-foreground mb-2">Regalos asignados</div>
+                <div className="text-3xl font-bold text-primary">{assignedGifts}</div>
+                <div className="h-2.5 bg-muted rounded-full mt-3 overflow-hidden">
                   <div
                     className="h-full bg-primary rounded-full transition-all"
                     style={{ width: `${(assignedGifts / event.totalGifts) * 100}%` }}
                   />
                 </div>
               </div>
-              <div className="bg-card rounded-xl p-4 shadow-sm border">
-                <div className="text-xs text-muted-foreground mb-1">Disponibles</div>
-                <div className="text-2xl font-bold text-success">{availableGifts}</div>
+              <div className="bg-card rounded-xl p-5 shadow-sm border">
+                <div className="text-sm text-muted-foreground mb-2">Disponibles</div>
+                <div className="text-3xl font-bold text-success">{availableGifts}</div>
               </div>
             </div>
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 overflow-hidden flex flex-col">
+          <div className="flex-1 flex flex-col overflow-hidden">
             {/* Rifas Tab */}
             {activeTab === "rifas" && (
               <div className="flex-1 flex flex-col overflow-hidden p-6">
                 {/* Action Bar */}
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Rifas del Evento</h3>
+                <div className="flex items-center justify-between mb-5 flex-shrink-0">
+                  <h3 className="text-xl font-semibold">Rifas del Evento</h3>
                   
-                  {!showRaffleForm && !addMode && (
-                    <div className="flex gap-2">
+                  {!addMode && (
+                    <div className="flex gap-3">
                       <Button
                         onClick={() => setAddMode("form")}
-                        className="gap-2"
+                        className="gap-2 h-11"
                         variant="outline"
                       >
                         <FileText className="h-4 w-4" />
@@ -452,7 +454,7 @@ export function EventDetailModal({
                           setAddMode("table")
                           addEmptyRow()
                         }}
-                        className="gap-2"
+                        className="gap-2 h-11"
                       >
                         <Table2 className="h-4 w-4" />
                         Agregar en Tabla
@@ -461,10 +463,9 @@ export function EventDetailModal({
                   )}
 
                   {addMode === "table" && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-3 items-center">
                       <Button
                         variant="outline"
-                        size="sm"
                         onClick={addEmptyRow}
                         className="gap-2"
                       >
@@ -473,7 +474,6 @@ export function EventDetailModal({
                       </Button>
                       <Button
                         variant="outline"
-                        size="sm"
                         onClick={pasteRow}
                         disabled={!copiedRow}
                         className="gap-2"
@@ -481,16 +481,17 @@ export function EventDetailModal({
                         <ClipboardPaste className="h-4 w-4" />
                         Pegar Fila
                       </Button>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1 rounded-md">
-                        <AlertCircle className="h-3 w-3" />
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/70 px-4 py-2 rounded-lg">
+                        <AlertCircle className="h-4 w-4" />
                         Puedes pegar desde Excel (Ctrl+V)
                       </div>
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         onClick={() => setAddMode(null)}
+                        className="h-10 w-10"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-5 w-5" />
                       </Button>
                     </div>
                   )}
@@ -498,9 +499,9 @@ export function EventDetailModal({
 
                 {/* Wizard Form */}
                 {addMode === "form" && (
-                  <div className="bg-card border rounded-xl shadow-sm mb-4 overflow-hidden">
+                  <div className="bg-card border rounded-xl shadow-sm mb-5 overflow-hidden flex-shrink-0">
                     {/* Progress Bar */}
-                    <div className="h-1 bg-muted">
+                    <div className="h-1.5 bg-muted">
                       <div
                         className="h-full bg-primary transition-all duration-300"
                         style={{ width: `${(currentStep / totalSteps) * 100}%` }}
@@ -512,19 +513,19 @@ export function EventDetailModal({
                       {currentStep === 1 && (
                         <div className="space-y-4">
                           <div className="flex items-center gap-3 mb-6">
-                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                            <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-base font-bold">
                               1
                             </div>
                             <div>
-                              <h4 className="font-semibold">Seleccionar Evento</h4>
+                              <h4 className="font-semibold text-lg">Seleccionar Evento</h4>
                               <p className="text-sm text-muted-foreground">Paso 1 de 4</p>
                             </div>
                           </div>
 
-                          <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                            <div className="flex items-center gap-2 text-primary">
-                              <Check className="h-5 w-5" />
-                              <span className="font-medium">Evento seleccionado: {event.name}</span>
+                          <div className="bg-primary/5 border border-primary/20 rounded-lg p-5">
+                            <div className="flex items-center gap-3 text-primary">
+                              <Check className="h-6 w-6" />
+                              <span className="font-medium text-lg">Evento seleccionado: {event.name}</span>
                             </div>
                           </div>
                         </div>
@@ -534,16 +535,16 @@ export function EventDetailModal({
                       {currentStep === 2 && (
                         <div className="space-y-4">
                           <div className="flex items-center gap-3 mb-6">
-                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                            <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-base font-bold">
                               2
                             </div>
                             <div>
-                              <h4 className="font-semibold">Informacion de la Rifa</h4>
+                              <h4 className="font-semibold text-lg">Informacion de la Rifa</h4>
                               <p className="text-sm text-muted-foreground">Paso 2 de 4</p>
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-2 gap-5">
                             <div className="space-y-2">
                               <Label>Nombre de la Rifa</Label>
                               <Input
@@ -552,6 +553,7 @@ export function EventDetailModal({
                                 onChange={(e) =>
                                   setFormData({ ...formData, name: e.target.value })
                                 }
+                                className="h-11"
                               />
                             </div>
                             <div className="space-y-2">
@@ -560,7 +562,7 @@ export function EventDetailModal({
                                 value={formData.type}
                                 onValueChange={(v) => setFormData({ ...formData, type: v })}
                               >
-                                <SelectTrigger>
+                                <SelectTrigger className="h-11">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -575,7 +577,7 @@ export function EventDetailModal({
                                 value={formData.manager}
                                 onValueChange={(v) => setFormData({ ...formData, manager: v })}
                               >
-                                <SelectTrigger>
+                                <SelectTrigger className="h-11">
                                   <SelectValue placeholder="Selecciona un manager" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -595,11 +597,11 @@ export function EventDetailModal({
                       {currentStep === 3 && (
                         <div className="space-y-4">
                           <div className="flex items-center gap-3 mb-6">
-                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                            <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-base font-bold">
                               3
                             </div>
                             <div>
-                              <h4 className="font-semibold">Areas, Departamentos y Filtros</h4>
+                              <h4 className="font-semibold text-lg">Areas, Departamentos y Filtros</h4>
                               <p className="text-sm text-muted-foreground">Paso 3 de 4</p>
                             </div>
                           </div>
@@ -608,12 +610,12 @@ export function EventDetailModal({
                             {/* Areas */}
                             <div className="space-y-3">
                               <div className="flex items-center gap-2">
-                                <Building2 className="h-4 w-4 text-primary" />
-                                <Label>Areas</Label>
+                                <Building2 className="h-5 w-5 text-primary" />
+                                <Label className="text-base">Areas</Label>
                               </div>
-                              <div className="border rounded-lg p-3 max-h-40 overflow-y-auto space-y-2">
+                              <div className="border rounded-lg p-4 max-h-48 overflow-y-auto space-y-3">
                                 {AREAS.map((area) => (
-                                  <div key={area} className="flex items-center gap-2">
+                                  <div key={area} className="flex items-center gap-3">
                                     <Checkbox
                                       id={area}
                                       checked={formData.selectedAreas.includes(area)}
@@ -644,20 +646,20 @@ export function EventDetailModal({
                             {/* Filtros */}
                             <div className="space-y-4">
                               <div className="flex items-center gap-2">
-                                <Filter className="h-4 w-4 text-primary" />
-                                <Label>Filtros de Empleados</Label>
+                                <Filter className="h-5 w-5 text-primary" />
+                                <Label className="text-base">Filtros de Empleados</Label>
                               </div>
 
-                              <div className="space-y-3">
+                              <div className="space-y-4">
                                 <div className="space-y-2">
-                                  <Label className="text-xs">Tipo de Contrato</Label>
+                                  <Label className="text-sm">Tipo de Contrato</Label>
                                   <Select
                                     value={formData.contractType}
                                     onValueChange={(v) =>
                                       setFormData({ ...formData, contractType: v })
                                     }
                                   >
-                                    <SelectTrigger className="h-9">
+                                    <SelectTrigger className="h-10">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -669,7 +671,7 @@ export function EventDetailModal({
                                 </div>
 
                                 <div className="space-y-2">
-                                  <Label className="text-xs">Antiguedad</Label>
+                                  <Label className="text-sm">Antiguedad</Label>
                                   <div className="flex gap-2">
                                     <Select
                                       value={formData.seniorityOperator}
@@ -677,19 +679,19 @@ export function EventDetailModal({
                                         setFormData({ ...formData, seniorityOperator: v })
                                       }
                                     >
-                                      <SelectTrigger className="w-20 h-9">
+                                      <SelectTrigger className="w-24 h-10">
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value=">=">≥</SelectItem>
-                                        <SelectItem value="<=">≤</SelectItem>
-                                        <SelectItem value="=">=</SelectItem>
+                                        <SelectItem value=">=">Mayor o igual</SelectItem>
+                                        <SelectItem value="<=">Menor o igual</SelectItem>
+                                        <SelectItem value="=">Igual</SelectItem>
                                       </SelectContent>
                                     </Select>
                                     <Input
                                       type="number"
                                       placeholder="Años"
-                                      className="h-9"
+                                      className="h-10"
                                       value={formData.seniorityValue}
                                       onChange={(e) =>
                                         setFormData({ ...formData, seniorityValue: e.target.value })
@@ -699,9 +701,9 @@ export function EventDetailModal({
                                 </div>
 
                                 <div className="space-y-2">
-                                  <Label className="text-xs">Niveles</Label>
+                                  <Label className="text-sm">Niveles</Label>
                                   <Select>
-                                    <SelectTrigger className="h-9">
+                                    <SelectTrigger className="h-10">
                                       <SelectValue placeholder="Todos los niveles" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -724,20 +726,20 @@ export function EventDetailModal({
                       {currentStep === 4 && (
                         <div className="space-y-4">
                           <div className="flex items-center gap-3 mb-6">
-                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                            <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-base font-bold">
                               4
                             </div>
                             <div>
-                              <h4 className="font-semibold">Resumen y Configuracion Final</h4>
+                              <h4 className="font-semibold text-lg">Resumen y Configuracion Final</h4>
                               <p className="text-sm text-muted-foreground">Paso 4 de 4</p>
                             </div>
                           </div>
 
                           <div className="grid grid-cols-2 gap-6">
                             {/* Summary */}
-                            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-                              <h5 className="font-medium">Resumen de la Rifa</h5>
-                              <div className="space-y-2 text-sm">
+                            <div className="bg-muted/50 rounded-lg p-5 space-y-4">
+                              <h5 className="font-medium text-base">Resumen de la Rifa</h5>
+                              <div className="space-y-3 text-sm">
                                 <div className="flex justify-between">
                                   <span className="text-muted-foreground">Evento:</span>
                                   <span className="font-medium">{event.name}</span>
@@ -763,18 +765,18 @@ export function EventDetailModal({
 
                             {/* Gift Assignment */}
                             <div className="space-y-4">
-                              <div className="bg-card border rounded-lg p-4">
-                                <div className="flex items-center gap-2 mb-3">
-                                  <Gift className="h-4 w-4 text-primary" />
+                              <div className="bg-card border rounded-lg p-5">
+                                <div className="flex items-center gap-2 mb-4">
+                                  <Gift className="h-5 w-5 text-primary" />
                                   <h5 className="font-medium">Disponibilidad de Regalos</h5>
                                 </div>
-                                <div className="grid grid-cols-3 gap-3 text-center">
+                                <div className="grid grid-cols-3 gap-4 text-center">
                                   <div>
                                     <div className="text-2xl font-bold">{event.totalGifts}</div>
                                     <div className="text-xs text-muted-foreground">Total</div>
                                   </div>
                                   <div>
-                                    <div className="text-2xl font-bold text-warning">{assignedGifts}</div>
+                                    <div className="text-2xl font-bold text-accent">{assignedGifts}</div>
                                     <div className="text-xs text-muted-foreground">Asignados</div>
                                   </div>
                                   <div>
@@ -790,6 +792,7 @@ export function EventDetailModal({
                                   <Input
                                     type="number"
                                     placeholder="0"
+                                    className="h-11"
                                     value={formData.gifts}
                                     onChange={(e) =>
                                       setFormData({ ...formData, gifts: e.target.value })
@@ -804,6 +807,7 @@ export function EventDetailModal({
                                   <Input
                                     type="number"
                                     placeholder="0"
+                                    className="h-11"
                                     max={100}
                                     value={formData.percentage}
                                     onChange={(e) =>
@@ -818,11 +822,11 @@ export function EventDetailModal({
                       )}
 
                       {/* Navigation */}
-                      <div className="flex justify-between mt-6 pt-4 border-t">
+                      <div className="flex justify-between mt-6 pt-5 border-t">
                         <Button
                           variant="outline"
                           onClick={currentStep === 1 ? resetForm : handlePrevStep}
-                          className="gap-2"
+                          className="gap-2 h-11"
                         >
                           {currentStep === 1 ? (
                             <>Cancelar</>
@@ -834,12 +838,12 @@ export function EventDetailModal({
                           )}
                         </Button>
                         {currentStep < totalSteps ? (
-                          <Button onClick={handleNextStep} className="gap-2">
+                          <Button onClick={handleNextStep} className="gap-2 h-11">
                             Siguiente
                             <ChevronRight className="h-4 w-4" />
                           </Button>
                         ) : (
-                          <Button onClick={handleSaveRaffle} className="gap-2 bg-success hover:bg-success/90">
+                          <Button onClick={handleSaveRaffle} className="gap-2 h-11 bg-success hover:bg-success/90 text-success-foreground">
                             <Save className="h-4 w-4" />
                             Guardar Rifa
                           </Button>
@@ -849,311 +853,317 @@ export function EventDetailModal({
                   </div>
                 )}
 
-                {/* Table */}
-                <div className="flex-1 border rounded-xl overflow-hidden bg-card">
-                  <ScrollArea className="h-full">
-                    <div className="overflow-x-auto">
-                      <table className="w-full min-w-[1400px]">
-                        <thead className="bg-muted/50 sticky top-0">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[140px]">
-                              Nombre Rifa
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[80px]">
-                              Tipo
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[200px]">
-                              Manager
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[120px]">
-                              Area
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[120px]">
-                              Departamento
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[100px]">
-                              Nivel
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[100px]">
-                              Antiguedad
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[110px]">
-                              Tipo Contrato
-                            </th>
-                            <th className="px-4 py-3 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[80px]">
-                              Empleados
-                            </th>
-                            <th className="px-4 py-3 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[80px]">
-                              # Regalos
-                            </th>
-                            <th className="px-4 py-3 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[60px]">
-                              %
-                            </th>
-                            <th className="px-4 py-3 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[120px]">
-                              Acciones
-                            </th>
+                {/* Table Container with scroll */}
+                <div className="flex-1 border rounded-xl overflow-hidden bg-card min-h-0">
+                  <div className="h-full overflow-auto">
+                    <table className="w-full" style={{ minWidth: "1600px" }}>
+                      <thead className="bg-muted/50 sticky top-0 z-10">
+                        <tr>
+                          <th className="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                            Nombre Rifa
+                          </th>
+                          <th className="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                            Tipo
+                          </th>
+                          <th className="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                            Manager
+                          </th>
+                          <th className="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                            Area
+                          </th>
+                          <th className="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                            Departamento
+                          </th>
+                          <th className="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                            Nivel
+                          </th>
+                          <th className="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                            Antiguedad
+                          </th>
+                          <th className="px-4 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                            Tipo Contrato
+                          </th>
+                          <th className="px-4 py-4 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                            Empleados
+                          </th>
+                          <th className="px-4 py-4 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                            # Regalos
+                          </th>
+                          <th className="px-4 py-4 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                            %
+                          </th>
+                          <th className="px-4 py-4 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                            Acciones
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {raffles.map((raffle) => (
+                          <tr
+                            key={raffle.id}
+                            className={cn(
+                              "hover:bg-muted/30 transition-colors",
+                              raffle.isNew && "bg-primary/5"
+                            )}
+                          >
+                            {raffle.isEditing ? (
+                              <>
+                                <td className="px-3 py-3">
+                                  <Input
+                                    className="h-9 text-sm min-w-[120px]"
+                                    value={raffle.name}
+                                    onChange={(e) =>
+                                      updateRaffle(raffle.id, "name", e.target.value)
+                                    }
+                                    placeholder="Nombre"
+                                  />
+                                </td>
+                                <td className="px-3 py-3">
+                                  <Select
+                                    value={raffle.type}
+                                    onValueChange={(v) => updateRaffle(raffle.id, "type", v)}
+                                  >
+                                    <SelectTrigger className="h-9 text-sm min-w-[100px]">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="area">area</SelectItem>
+                                      <SelectItem value="general">general</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </td>
+                                <td className="px-3 py-3">
+                                  <Select
+                                    value={raffle.manager}
+                                    onValueChange={(v) => updateRaffle(raffle.id, "manager", v)}
+                                  >
+                                    <SelectTrigger className="h-9 text-sm min-w-[180px]">
+                                      <SelectValue placeholder="Manager" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {MANAGERS.map((m) => (
+                                        <SelectItem key={m.id} value={m.name}>
+                                          {m.name}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </td>
+                                <td className="px-3 py-3">
+                                  <Select
+                                    value={raffle.area}
+                                    onValueChange={(v) => updateRaffle(raffle.id, "area", v)}
+                                  >
+                                    <SelectTrigger className="h-9 text-sm min-w-[120px]">
+                                      <SelectValue placeholder="Area" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {AREAS.map((area) => (
+                                        <SelectItem key={area} value={area}>
+                                          {area}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </td>
+                                <td className="px-3 py-3">
+                                  <Select
+                                    value={raffle.department}
+                                    onValueChange={(v) => updateRaffle(raffle.id, "department", v)}
+                                  >
+                                    <SelectTrigger className="h-9 text-sm min-w-[120px]">
+                                      <SelectValue placeholder="Depto" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {DEPARTMENTS.map((dept) => (
+                                        <SelectItem key={dept} value={dept}>
+                                          {dept}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </td>
+                                <td className="px-3 py-3">
+                                  <Select
+                                    value={raffle.level}
+                                    onValueChange={(v) => updateRaffle(raffle.id, "level", v)}
+                                  >
+                                    <SelectTrigger className="h-9 text-sm min-w-[100px]">
+                                      <SelectValue placeholder="Nivel" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {LEVELS.map((level) => (
+                                        <SelectItem key={level} value={level}>
+                                          {level}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </td>
+                                <td className="px-3 py-3">
+                                  <Select
+                                    value={raffle.seniority}
+                                    onValueChange={(v) => updateRaffle(raffle.id, "seniority", v)}
+                                  >
+                                    <SelectTrigger className="h-9 text-sm min-w-[110px]">
+                                      <SelectValue placeholder="Antiguedad" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {SENIORITY_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>
+                                          {opt}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </td>
+                                <td className="px-3 py-3">
+                                  <Select
+                                    value={raffle.contractType}
+                                    onValueChange={(v) => updateRaffle(raffle.id, "contractType", v)}
+                                  >
+                                    <SelectTrigger className="h-9 text-sm min-w-[110px]">
+                                      <SelectValue placeholder="Contrato" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {CONTRACT_TYPES.map((type) => (
+                                        <SelectItem key={type} value={type}>
+                                          {type}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </td>
+                                <td className="px-3 py-3">
+                                  <Input
+                                    type="number"
+                                    className="h-9 text-sm text-center w-20"
+                                    value={raffle.employees}
+                                    onChange={(e) =>
+                                      updateRaffle(raffle.id, "employees", parseInt(e.target.value) || 0)
+                                    }
+                                  />
+                                </td>
+                                <td className="px-3 py-3">
+                                  <Input
+                                    type="number"
+                                    className="h-9 text-sm text-center w-20"
+                                    value={raffle.gifts}
+                                    onChange={(e) =>
+                                      updateRaffle(raffle.id, "gifts", parseInt(e.target.value) || 0)
+                                    }
+                                  />
+                                </td>
+                                <td className="px-3 py-3">
+                                  <Input
+                                    type="number"
+                                    className="h-9 text-sm text-center w-16"
+                                    value={raffle.percentage}
+                                    onChange={(e) =>
+                                      updateRaffle(raffle.id, "percentage", parseInt(e.target.value) || 0)
+                                    }
+                                  />
+                                </td>
+                                <td className="px-3 py-3">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8 text-success hover:text-success hover:bg-success/10"
+                                      onClick={() => saveRow(raffle.id)}
+                                    >
+                                      <Check className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                      onClick={() => cancelEditing(raffle.id)}
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td className="px-4 py-4 text-sm font-medium whitespace-nowrap">
+                                  {raffle.name}
+                                </td>
+                                <td className="px-4 py-4">
+                                  <Badge variant="secondary" className="text-xs">
+                                    {raffle.type}
+                                  </Badge>
+                                </td>
+                                <td className="px-4 py-4 text-sm text-muted-foreground max-w-[200px] truncate">
+                                  {raffle.manager}
+                                </td>
+                                <td className="px-4 py-4 text-sm whitespace-nowrap">{raffle.area}</td>
+                                <td className="px-4 py-4 text-sm whitespace-nowrap">{raffle.department}</td>
+                                <td className="px-4 py-4 text-sm whitespace-nowrap">{raffle.level}</td>
+                                <td className="px-4 py-4 text-sm whitespace-nowrap">{raffle.seniority}</td>
+                                <td className="px-4 py-4 text-sm whitespace-nowrap">{raffle.contractType}</td>
+                                <td className="px-4 py-4 text-center">
+                                  <Badge
+                                    variant={raffle.employees > 0 ? "default" : "secondary"}
+                                    className={cn(
+                                      "min-w-[40px]",
+                                      raffle.employees > 0 ? "bg-primary" : ""
+                                    )}
+                                  >
+                                    {raffle.employees}
+                                  </Badge>
+                                </td>
+                                <td className="px-4 py-4 text-center font-semibold">{raffle.gifts}</td>
+                                <td className="px-4 py-4 text-center text-muted-foreground">
+                                  {raffle.percentage}%
+                                </td>
+                                <td className="px-4 py-4">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+                                      onClick={() => startEditing(raffle.id)}
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                      onClick={() => copyRow(raffle)}
+                                    >
+                                      <Copy className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                      onClick={() => deleteRow(raffle.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </>
+                            )}
                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
-                          {raffles.map((raffle) => (
-                            <tr
-                              key={raffle.id}
-                              className={cn(
-                                "hover:bg-muted/30 transition-colors",
-                                raffle.isNew && "bg-primary/5"
-                              )}
-                            >
-                              {raffle.isEditing ? (
-                                <>
-                                  <td className="px-2 py-2">
-                                    <Input
-                                      className="h-8 text-sm"
-                                      value={raffle.name}
-                                      onChange={(e) =>
-                                        updateRaffle(raffle.id, "name", e.target.value)
-                                      }
-                                      placeholder="Nombre"
-                                    />
-                                  </td>
-                                  <td className="px-2 py-2">
-                                    <Select
-                                      value={raffle.type}
-                                      onValueChange={(v) => updateRaffle(raffle.id, "type", v)}
-                                    >
-                                      <SelectTrigger className="h-8 text-sm">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="area">area</SelectItem>
-                                        <SelectItem value="general">general</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </td>
-                                  <td className="px-2 py-2">
-                                    <Select
-                                      value={raffle.manager}
-                                      onValueChange={(v) => updateRaffle(raffle.id, "manager", v)}
-                                    >
-                                      <SelectTrigger className="h-8 text-sm">
-                                        <SelectValue placeholder="Manager" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {MANAGERS.map((m) => (
-                                          <SelectItem key={m.id} value={m.name}>
-                                            {m.name}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </td>
-                                  <td className="px-2 py-2">
-                                    <Select
-                                      value={raffle.area}
-                                      onValueChange={(v) => updateRaffle(raffle.id, "area", v)}
-                                    >
-                                      <SelectTrigger className="h-8 text-sm">
-                                        <SelectValue placeholder="Area" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {AREAS.map((a) => (
-                                          <SelectItem key={a} value={a}>
-                                            {a}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </td>
-                                  <td className="px-2 py-2">
-                                    <Select
-                                      value={raffle.department}
-                                      onValueChange={(v) => updateRaffle(raffle.id, "department", v)}
-                                    >
-                                      <SelectTrigger className="h-8 text-sm">
-                                        <SelectValue placeholder="Depto" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {DEPARTMENTS.map((d) => (
-                                          <SelectItem key={d} value={d}>
-                                            {d}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </td>
-                                  <td className="px-2 py-2">
-                                    <Select
-                                      value={raffle.level}
-                                      onValueChange={(v) => updateRaffle(raffle.id, "level", v)}
-                                    >
-                                      <SelectTrigger className="h-8 text-sm">
-                                        <SelectValue placeholder="Nivel" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {LEVELS.map((l) => (
-                                          <SelectItem key={l} value={l}>
-                                            {l}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </td>
-                                  <td className="px-2 py-2">
-                                    <Select
-                                      value={raffle.seniority}
-                                      onValueChange={(v) => updateRaffle(raffle.id, "seniority", v)}
-                                    >
-                                      <SelectTrigger className="h-8 text-sm">
-                                        <SelectValue placeholder="Antiguedad" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {SENIORITY_OPTIONS.map((s) => (
-                                          <SelectItem key={s} value={s}>
-                                            {s}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </td>
-                                  <td className="px-2 py-2">
-                                    <Select
-                                      value={raffle.contractType}
-                                      onValueChange={(v) =>
-                                        updateRaffle(raffle.id, "contractType", v)
-                                      }
-                                    >
-                                      <SelectTrigger className="h-8 text-sm">
-                                        <SelectValue placeholder="Contrato" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {CONTRACT_TYPES.map((c) => (
-                                          <SelectItem key={c} value={c}>
-                                            {c}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </td>
-                                  <td className="px-2 py-2 text-center">
-                                    <Input
-                                      type="number"
-                                      className="h-8 text-sm w-16 mx-auto text-center"
-                                      value={raffle.employees}
-                                      onChange={(e) =>
-                                        updateRaffle(raffle.id, "employees", parseInt(e.target.value) || 0)
-                                      }
-                                    />
-                                  </td>
-                                  <td className="px-2 py-2 text-center">
-                                    <Input
-                                      type="number"
-                                      className="h-8 text-sm w-16 mx-auto text-center"
-                                      value={raffle.gifts}
-                                      onChange={(e) =>
-                                        updateRaffle(raffle.id, "gifts", parseInt(e.target.value) || 0)
-                                      }
-                                    />
-                                  </td>
-                                  <td className="px-2 py-2 text-center">
-                                    <Input
-                                      type="number"
-                                      className="h-8 text-sm w-14 mx-auto text-center"
-                                      value={raffle.percentage}
-                                      onChange={(e) =>
-                                        updateRaffle(raffle.id, "percentage", parseInt(e.target.value) || 0)
-                                      }
-                                    />
-                                  </td>
-                                  <td className="px-2 py-2">
-                                    <div className="flex items-center justify-center gap-1">
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-7 w-7 text-success hover:text-success"
-                                        onClick={() => saveRow(raffle.id)}
-                                      >
-                                        <Check className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-7 w-7 text-destructive hover:text-destructive"
-                                        onClick={() => cancelEditing(raffle.id)}
-                                      >
-                                        <X className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  </td>
-                                </>
-                              ) : (
-                                <>
-                                  <td className="px-4 py-3 text-sm font-medium">{raffle.name}</td>
-                                  <td className="px-4 py-3">
-                                    <Badge variant="secondary" className="text-xs">
-                                      {raffle.type}
-                                    </Badge>
-                                  </td>
-                                  <td className="px-4 py-3 text-sm">{raffle.manager}</td>
-                                  <td className="px-4 py-3 text-sm">{raffle.area}</td>
-                                  <td className="px-4 py-3 text-sm">{raffle.department}</td>
-                                  <td className="px-4 py-3 text-sm">{raffle.level}</td>
-                                  <td className="px-4 py-3 text-sm">{raffle.seniority}</td>
-                                  <td className="px-4 py-3 text-sm">{raffle.contractType}</td>
-                                  <td className="px-4 py-3 text-center">
-                                    <span className="text-primary font-semibold cursor-pointer hover:underline">
-                                      {raffle.employees}
-                                    </span>
-                                  </td>
-                                  <td className="px-4 py-3 text-center font-medium">{raffle.gifts}</td>
-                                  <td className="px-4 py-3 text-center">{raffle.percentage}%</td>
-                                  <td className="px-4 py-3">
-                                    <div className="flex items-center justify-center gap-1">
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-7 w-7"
-                                        onClick={() => startEditing(raffle.id)}
-                                      >
-                                        <Pencil className="h-3.5 w-3.5" />
-                                      </Button>
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-7 w-7"
-                                        onClick={() => copyRow(raffle)}
-                                      >
-                                        <Copy className="h-3.5 w-3.5" />
-                                      </Button>
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-7 w-7 text-destructive hover:text-destructive"
-                                        onClick={() => deleteRow(raffle.id)}
-                                      >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                      </Button>
-                                    </div>
-                                  </td>
-                                </>
-                              )}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </ScrollArea>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Asignacion Tab */}
             {activeTab === "asignacion" && (
-              <div className="flex-1 p-6">
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center text-muted-foreground">
-                    <Users className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                    <h3 className="text-lg font-medium">Asignacion de Regalos a Rifas</h3>
-                    <p className="text-sm mt-2">Esta seccion estara disponible proximamente</p>
-                  </div>
+              <div className="flex-1 p-6 overflow-auto">
+                <div className="text-center py-16 text-muted-foreground">
+                  <Gift className="h-16 w-16 mx-auto mb-4 opacity-30" />
+                  <h3 className="text-xl font-medium mb-2">Asignacion de Regalos a Rifas</h3>
+                  <p className="text-sm">Esta seccion te permite asignar regalos a las rifas creadas</p>
                 </div>
               </div>
             )}
